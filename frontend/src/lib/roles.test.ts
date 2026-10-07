@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import { inicioPara, menuPara, rolesDeRuta, tieneAlgunRol } from "./roles";
+
+const etiquetas = (roles: string[]) => menuPara(roles).map((i) => i.etiqueta);
+
+describe("menú por rol (HU-05 CA-3)", () => {
+  it("el Investigador no ve Usuarios ni el Tablero del centro", () => {
+    expect(etiquetas(["Investigador"])).toEqual(["Proyectos", "Notificaciones"]);
+  });
+
+  it("el Administrador ve Usuarios y el Tablero del centro", () => {
+    expect(etiquetas(["Administrador"])).toEqual(["Tablero del centro", "Proyectos", "Usuarios", "Notificaciones"]);
+  });
+
+  it("el Externo solo ve sus notificaciones", () => {
+    expect(etiquetas(["Externo"])).toEqual(["Notificaciones"]);
+  });
+
+  it("con varios roles el menú es la unión (CA-4)", () => {
+    expect(etiquetas(["Investigador", "Director"])).toEqual(["Tablero del centro", "Proyectos", "Notificaciones"]);
+  });
+
+  it("protege las subrutas con los roles de la opción del menú", () => {
+    expect(rolesDeRuta("/usuarios/15")).toEqual(["Administrador"]);
+    expect(tieneAlgunRol(["Coordinador"], rolesDeRuta("/usuarios/nuevo")!)).toBe(false);
+    expect(rolesDeRuta("/login")).toBeUndefined();
+  });
+});
+
+describe("página de inicio según el rol (HU-01 CA-1)", () => {
+  it.each([
+    [["Director"], "/tablero-centro"],
+    [["Coordinador"], "/proyectos"],
+    [["Investigador"], "/proyectos"],
+    [["Administrador"], "/usuarios"],
+    [["Externo"], "/notificaciones"],
+    [["Administrador", "Director"], "/tablero-centro"],
+  ])("%j inicia en %s", (roles, ruta) => {
+    expect(inicioPara(roles)).toBe(ruta);
+  });
+});

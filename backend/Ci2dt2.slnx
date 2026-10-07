@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ci2dt2.Api/Ci2dt2.Api.csproj" />
+    <Project Path="src/Ci2dt2.Application/Ci2dt2.Application.csproj" />
+    <Project Path="src/Ci2dt2.Domain/Ci2dt2.Domain.csproj" />
+    <Project Path="src/Ci2dt2.Infrastructure/Ci2dt2.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ci2dt2.IntegrationTests/Ci2dt2.IntegrationTests.csproj" />
+    <Project Path="tests/Ci2dt2.UnitTests/Ci2dt2.UnitTests.csproj" />
+  </Folder>
+</Solution>

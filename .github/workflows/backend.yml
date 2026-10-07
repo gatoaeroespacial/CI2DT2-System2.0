@@ -1,0 +1,72 @@
+name: Backend
+
+on:
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+  push:
+    branches: [develop, main]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  ci:
+    name: Compilación, lint y pruebas
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          # Contenedor efímero solo para las pruebas de CI (no es una credencial real).
+          MSSQL_SA_PASSWORD: Ci2dt2-Pruebas-2026
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Ci2dt2-Pruebas-2026 -C -Q 'SELECT 1'"
+          --health-interval 10s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - name: Lint (dotnet format)
+        run: dotnet format --verify-no-changes --no-restore
+      - name: Pruebas unitarias
+        run: dotnet test tests/Ci2dt2.UnitTests --no-build -c Release
+      - name: Pruebas de integración (SQL Server)
+        run: dotnet test tests/Ci2dt2.IntegrationTests --no-build -c Release
+        env:
+          CI2DT2_TEST_SQL: Server=localhost,1433;User Id=sa;Password=Ci2dt2-Pruebas-2026;TrustServerCertificate=True
+
+  deploy:
+    name: Despliegue en MonsterASP (${{ github.ref_name == 'main' && 'Producción' || 'Pruebas' }})
+    needs: ci
+    if: github.event_name == 'push'
+    runs-on: windows-latest
+    # Los secretos de cada ambiente se configuran en GitHub (Settings > Environments).
+    environment: ${{ github.ref_name == 'main' && 'Produccion' || 'Pruebas' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Publicar
+        run: dotnet publish src/Ci2dt2.Api -c Release -o publish -p:EnvironmentName=${{ github.ref_name == 'main' && 'Production' || 'Pruebas' }}
+      - name: Configuración del ambiente (fuera del código)
+        shell: pwsh
+        env:
+          APPSETTINGS: ${{ secrets.APPSETTINGS_JSON }}
+          AMBIENTE: ${{ github.ref_name == 'main' && 'Production' || 'Pruebas' }}
+        run: Set-Content -Path "publish/appsettings.$env:AMBIENTE.json" -Value $env:APPSETTINGS -Encoding utf8
+      - name: Web Deploy
+        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        with:
+          website-name: ${{ secrets.WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.SERVER_USERNAME }}
+          server-password: ${{ secrets.SERVER_PASSWORD }}
+          source-path: backend\publish\

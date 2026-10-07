@@ -1,0 +1,14 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+logs/
+TestResults/
+
+# Configuración local con secretos
+appsettings.*.local.json
+.env*
+
+# Herramientas
+.claude/settings.local.json
