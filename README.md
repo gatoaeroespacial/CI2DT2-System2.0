@@ -75,3 +75,7 @@ con el dominio del frontend (proxy de Next.js), la cookie no se bloquea entre do
 ## Base de datos: respaldo y restauración
 
 Ver [docs/operacion.md](docs/operacion.md).
+
+## Guía de uso y capacidades
+
+Ver [docs/guia-rapida.md](docs/guia-rapida.md).
