@@ -1,3 +1,4 @@
+using Ci2dt2.Application.Seguridad;
 using Ci2dt2.Domain;
 using FluentValidation;
 
@@ -53,6 +54,7 @@ public sealed class CrearUsuarioRequestValidator : DatosUsuarioValidator<CrearUs
     public CrearUsuarioRequestValidator()
     {
         RuleFor(x => x.Roles).ValidarRoles();
+        RuleFor(x => x.Contrasena).CumplePoliticaContrasena();
         RuleFor(x => x.AliadoId)
             .NotNull().WithMessage("Un usuario Externo debe estar asociado a un aliado.")
             .When(x => x.Roles?.Contains(Roles.Externo) == true);
@@ -66,6 +68,14 @@ public sealed class CambiarEstadoUsuarioRequestValidator : AbstractValidator<Cam
     public CambiarEstadoUsuarioRequestValidator()
     {
         RuleFor(x => x.TieneAcceso).NotNull().WithMessage("Debe indicar si el usuario queda activo o inactivo.");
+    }
+}
+
+public sealed class AsignarContrasenaRequestValidator : AbstractValidator<AsignarContrasenaRequest>
+{
+    public AsignarContrasenaRequestValidator()
+    {
+        RuleFor(x => x.Contrasena).CumplePoliticaContrasena();
     }
 }
 

@@ -16,24 +16,17 @@ public interface ITokenService
     TokenAcceso CrearTokenAcceso(Usuario usuario, IReadOnlyCollection<string> roles, IReadOnlyCollection<int> programas);
 }
 
-/// <summary>Enlaces firmados para definir o restablecer la contraseña.</summary>
-public interface IEnlaceContrasenaService
-{
-    string Generar(int usuarioId, string sello, TimeSpan vigencia);
-
-    /// <summary>Devuelve null si el token es inválido o expiró.</summary>
-    (int UsuarioId, string Sello)? Validar(string token);
-}
-
+/// <summary>Envío de correo (SMTP). Lo usarán las notificaciones por correo de HU-23.</summary>
 public interface IEmailSender
 {
     Task EnviarAsync(string para, string asunto, string cuerpoHtml, CancellationToken ct = default);
 }
 
-public sealed class OpcionesFrontend
+/// <summary>Tokens de descarga temporales: la descarga nunca usa una ruta pública (HU-21).</summary>
+public interface IEnlaceDescarga
 {
-    public const string Seccion = "Frontend";
+    string Generar(int documentoId, TimeSpan vigencia);
 
-    /// <summary>URL pública del frontend, usada en los enlaces de los correos.</summary>
-    public string Url { get; set; } = "http://localhost:3000";
+    /// <summary>Id del documento, o null si el token es inválido o expiró.</summary>
+    int? Validar(string token);
 }

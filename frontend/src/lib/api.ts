@@ -70,7 +70,9 @@ export async function api<T>(ruta: string, opciones: RequestInit = {}): Promise<
     const headers = new Headers(opciones.headers);
     const token = useAuth.getState().accessToken;
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    if (opciones.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    // Con FormData el navegador define el Content-Type (multipart) con su separador.
+    if (opciones.body && !(opciones.body instanceof FormData) && !headers.has("Content-Type"))
+      headers.set("Content-Type", "application/json");
     return fetch(`${BASE}${ruta}`, { ...opciones, headers, credentials: "same-origin" });
   };
 
@@ -99,4 +101,16 @@ export async function apiAuth<T>(ruta: string, cuerpo?: unknown): Promise<T> {
   if (!respuesta.ok) throw await leerError(respuesta);
   if (respuesta.status === 204) return undefined as T;
   return (await respuesta.json()) as T;
+}
+
+/** Cuerpo JSON para api(). */
+export const json = (metodo: string, cuerpo: unknown): RequestInit => ({ method: metodo, body: JSON.stringify(cuerpo) });
+
+/**
+ * Descarga un documento: pide a la API una URL firmada temporal (exige permiso sobre la
+ * entidad) y la abre; el archivo nunca tiene una ruta pública (HU-21).
+ */
+export async function descargarDocumento(id: number): Promise<void> {
+  const { url } = await api<{ url: string; expiraEn: string }>(`/documentos/${id}/descarga`);
+  window.location.assign(url);
 }

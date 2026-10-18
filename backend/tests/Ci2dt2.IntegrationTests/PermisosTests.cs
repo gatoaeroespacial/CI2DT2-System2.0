@@ -13,7 +13,7 @@ namespace Ci2dt2.IntegrationTests;
 [Collection(ColeccionApi.Nombre)]
 public class PermisosTests(ApiFactory api)
 {
-    private const string A = "Administrador", D = "Director", C = "Coordinador", I = "Investigador", E = "Externo";
+    private const string A = "Admin", D = "Director", C = "Coordinador", I = "Investigador", E = "Externo";
 
     public static TheoryData<string, string> EndpointsUsuarios => new()
     {
@@ -23,6 +23,7 @@ public class PermisosTests(ApiFactory api)
         { "PUT", "/api/v1/usuarios/999999" },
         { "PATCH", "/api/v1/usuarios/999999/estado" },
         { "PUT", "/api/v1/usuarios/999999/roles" },
+        { "PUT", "/api/v1/usuarios/999999/contrasena" },
     };
 
     /// <summary>Anexo A, "Gestionar usuarios y roles": solo el Administrador.</summary>
@@ -47,17 +48,29 @@ public class PermisosTests(ApiFactory api)
         Assert.Equal(HttpStatusCode.Unauthorized, anonimo.StatusCode);
     }
 
-    /// <summary>Anexo A, "Gestionar aliados y convocatorias": Administrador, Director y Coordinador.</summary>
+    /// <summary>
+    /// Anexo A, "Gestionar aliados y convocatorias": Administrador, Director y Coordinador. El
+    /// Investigador solo consulta el catálogo (lo necesita para registrar cofinanciaciones, HU-10).
+    /// </summary>
     [Theory]
-    [InlineData(A, HttpStatusCode.OK)]
-    [InlineData(D, HttpStatusCode.OK)]
-    [InlineData(C, HttpStatusCode.OK)]
-    [InlineData(I, HttpStatusCode.Forbidden)]
-    [InlineData(E, HttpStatusCode.Forbidden)]
-    public async Task Consultar_aliados_segun_el_rol(string rol, HttpStatusCode esperado)
+    [InlineData(A, HttpStatusCode.OK, true)]
+    [InlineData(D, HttpStatusCode.OK, true)]
+    [InlineData(C, HttpStatusCode.OK, true)]
+    [InlineData(I, HttpStatusCode.OK, false)]
+    [InlineData(E, HttpStatusCode.Forbidden, false)]
+    public async Task Consultar_y_gestionar_aliados_segun_el_rol(string rol, HttpStatusCode consulta, bool gestiona)
     {
         var cliente = await api.ClienteComoAsync(rol);
-        Assert.Equal(esperado, (await cliente.GetAsync("/api/v1/aliados")).StatusCode);
+        Assert.Equal(consulta, (await cliente.GetAsync("/api/v1/aliados")).StatusCode);
+
+        var crear = await cliente.PostAsJsonAsync("/api/v1/aliados", new
+        {
+            tipoAliadoId = 2,
+            nombre = "Aliado " + rol,
+            pais = "Suiza",
+            email = "aliado@pruebas.local",
+        });
+        Assert.Equal(gestiona ? HttpStatusCode.Created : HttpStatusCode.Forbidden, crear.StatusCode);
     }
 
     [Fact]
@@ -70,8 +83,7 @@ public class PermisosTests(ApiFactory api)
         var respuesta = await cliente.PutAsJsonAsync("/api/v1/usuarios/1", new { nombres = "x" });
 
         Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
-        var registro = await api.EnBaseDatosAsync(db => db.LogActividades
-            .Where(l => l.UsuarioId == usuario.Id && l.EstadoHttp == 403).SingleAsync());
+        var registro = Assert.Single(await api.EsperarLogsAsync(l => l.UsuarioId == usuario.Id && l.EstadoHttp == 403));
         Assert.Equal("usuarios", registro.Recurso);
         Assert.Equal("PUT", registro.Accion);
         Assert.Equal("1", registro.RecursoId);
@@ -155,9 +167,9 @@ public class PermisosTests(ApiFactory api)
             db.Proyectos.AddRange(a, b);
             await db.SaveChangesAsync();
             db.ProyectoIntegrantes.AddRange(
-                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = ip.Id, RolEnProyecto = "Investigador principal" },
-                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = integrante.Id, RolEnProyecto = "Coinvestigador" },
-                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = retirado.Id, RolEnProyecto = "Coinvestigador", FechaFin = hoy.AddDays(-1) });
+                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = ip.Id, RolEnProyecto = "IP" },
+                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = integrante.Id, RolEnProyecto = "Co-investigador" },
+                new ProyectoIntegrante { ProyectoId = a.Id, UsuarioId = retirado.Id, RolEnProyecto = "Co-investigador", FechaFin = hoy.AddDays(-1) });
             await db.SaveChangesAsync();
             return (a.Id, b.Id);
         });
@@ -177,7 +189,9 @@ public class PermisosTests(ApiFactory api)
         // Investigador: solo los proyectos donde es integrante vigente; editar solo si es IP.
         Assert.True(await acceso.PuedeVerProyectoAsync(Como(integrante, I), proyectoA));
         Assert.False(await acceso.PuedeVerProyectoAsync(Como(ajeno, I), proyectoA));
-        Assert.False(await acceso.PuedeVerProyectoAsync(Como(retirado, I), proyectoA));
+        // "Mis proyectos" incluye vinculaciones históricas (HU-13): el retirado consulta, pero no edita.
+        Assert.True(await acceso.PuedeVerProyectoAsync(Como(retirado, I), proyectoA));
+        Assert.False(await acceso.EsIntegranteProyectoAsync(retirado.Id, proyectoA));
         Assert.False(await acceso.PuedeVerProyectoAsync(Como(integrante, I), proyectoB));
         Assert.True(await acceso.PuedeModificarProyectoComoIpAsync(Como(ip, I), proyectoA));
         Assert.False(await acceso.PuedeModificarProyectoComoIpAsync(Como(integrante, I), proyectoA));

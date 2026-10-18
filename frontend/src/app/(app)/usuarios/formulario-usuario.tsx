@@ -1,14 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { Autocompletar, buscarAliados, ReglasContrasena } from "@/components/controles";
 import { Boton, Campo, claseEntrada } from "@/components/ui";
-import { api, ApiError } from "@/lib/api";
-import { esquemaUsuario, TIPOS_DOCUMENTO, type DatosUsuario } from "@/lib/esquemas";
+import { ApiError } from "@/lib/api";
+import { esquemaUsuario, esquemaUsuarioNuevo, TIPOS_DOCUMENTO, type DatosUsuario } from "@/lib/esquemas";
 import { ROLES, TODOS_LOS_ROLES } from "@/lib/roles";
-import type { AliadoOpcion, UsuarioDetalle } from "./tipos";
+import type { UsuarioDetalle } from "./tipos";
 
 const vacio: DatosUsuario = {
   nombres: "",
@@ -23,6 +23,7 @@ const vacio: DatosUsuario = {
   orcid: "",
   aliadoId: "",
   roles: [],
+  contrasena: "",
 };
 
 export function aFormulario(u: UsuarioDetalle): DatosUsuario {
@@ -39,35 +40,41 @@ export function aFormulario(u: UsuarioDetalle): DatosUsuario {
     orcid: u.orcid ?? "",
     aliadoId: u.aliadoId ? String(u.aliadoId) : "",
     roles: u.roles,
+    contrasena: "",
   };
 }
 
-type CampoTexto = Exclude<keyof DatosUsuario, "roles" | "tipoDocumento" | "aliadoId">;
+type CampoTexto = Exclude<keyof DatosUsuario, "roles" | "tipoDocumento" | "aliadoId" | "contrasena">;
 
-/** Formulario de creación y edición de usuarios (HU-04). */
+/**
+ * Formulario de creación y edición de usuarios (HU-04). Al crear, el Administrador define la
+ * contraseña inicial; nunca se muestra después ni se envía por correo.
+ */
 export function FormularioUsuario({
   inicial,
+  nombreAliado,
   textoGuardar,
   onGuardar,
 }: {
   inicial?: DatosUsuario;
+  nombreAliado?: string;
   textoGuardar: string;
   onGuardar: (datos: DatosUsuario) => Promise<void>;
 }) {
+  const esNuevo = !inicial;
   const {
     register,
     handleSubmit,
     control,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<DatosUsuario>({ resolver: zodResolver(esquemaUsuario), defaultValues: inicial ?? vacio });
+  } = useForm<DatosUsuario>({
+    resolver: zodResolver(esNuevo ? esquemaUsuarioNuevo : esquemaUsuario),
+    defaultValues: inicial ?? vacio,
+  });
 
   const esExterno = useWatch({ control, name: "roles" }).includes(ROLES.Externo);
-  const aliados = useQuery({
-    queryKey: ["aliados"],
-    queryFn: () => api<AliadoOpcion[]>("/aliados"),
-    enabled: esExterno,
-  });
+  const contrasena = useWatch({ control, name: "contrasena" });
 
   const enviar = handleSubmit(async (datos) => {
     try {
@@ -150,15 +157,41 @@ export function FormularioUsuario({
 
       {esExterno && (
         <Campo id="aliadoId" etiqueta="Aliado que representa" error={errors.aliadoId?.message} obligatorio>
-          <select id="aliadoId" className={claseEntrada} aria-invalid={!!errors.aliadoId} {...register("aliadoId")}>
-            <option value="">{aliados.isPending ? "Cargando aliados…" : "Seleccione un aliado"}</option>
-            {aliados.data?.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nombre}
-              </option>
-            ))}
-          </select>
-          {aliados.data?.length === 0 && <p className="text-xs text-slate-500">Aún no hay aliados registrados.</p>}
+          <Controller
+            control={control}
+            name="aliadoId"
+            render={({ field }) => (
+              <Autocompletar
+                id="aliadoId"
+                valor={field.value}
+                etiquetaInicial={nombreAliado}
+                onCambio={(id) => field.onChange(id)}
+                buscar={buscarAliados}
+                claveConsulta="buscar-aliados"
+                invalido={!!errors.aliadoId}
+                accionExtra={
+                  <Link href="/aliados/nuevo" target="_blank" className="text-emerald-800 hover:underline">
+                    + Registrar un aliado nuevo
+                  </Link>
+                }
+              />
+            )}
+          />
+        </Campo>
+      )}
+
+      {esNuevo && (
+        <Campo id="contrasena" etiqueta="Contraseña inicial" error={errors.contrasena?.message} obligatorio>
+          <input
+            id="contrasena"
+            type="password"
+            autoComplete="new-password"
+            className={claseEntrada}
+            aria-invalid={!!errors.contrasena}
+            aria-describedby="reglas-contrasena"
+            {...register("contrasena")}
+          />
+          <ReglasContrasena valor={contrasena} id="reglas-contrasena" />
         </Campo>
       )}
 

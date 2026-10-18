@@ -2,6 +2,7 @@ using Ci2dt2.Api.Infraestructura;
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Seguridad;
 using Ci2dt2.Application.Usuarios;
+using Ci2dt2.Domain;
 
 namespace Ci2dt2.Api.Endpoints;
 
@@ -27,7 +28,7 @@ public sealed class UsuariosEndpoints : IEndpointModule
 
         grupo.MapPost("/", Crear)
             .Validar<CrearUsuarioRequest>()
-            .WithSummary("Crea un usuario y le envía el correo de bienvenida")
+            .WithSummary("Crea un usuario con su contraseña inicial")
             .Produces<UsuarioDetalle>(StatusCodes.Status201Created)
             .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
 
@@ -51,6 +52,20 @@ public sealed class UsuariosEndpoints : IEndpointModule
             .Produces<UsuarioDetalle>()
             .Produces<ErrorApi>(StatusCodes.Status404NotFound)
             .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapPut("/{id:int}/contrasena", AsignarContrasena)
+            .Validar<AsignarContrasenaRequest>()
+            .WithSummary("Asigna una nueva contraseña y revoca todas las sesiones del usuario")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status404NotFound);
+
+        // Búsqueda de usuarios para vincularlos a programas (HU-06) o proyectos (HU-09).
+        app.MapGet("/api/v1/usuarios/buscar", async (UsuariosQueries consultas, string? texto, CancellationToken ct) =>
+                Results.Ok(await consultas.BuscarAsync(texto, ct)))
+            .WithTags("Usuarios")
+            .WithSummary("Busca usuarios activos por nombre, correo o documento (máximo 10)")
+            .RequireAuthorization(p => p.RequireRole(Roles.Administrador, Roles.Director, Roles.Coordinador, Roles.Investigador))
+            .Produces<IReadOnlyList<UsuarioOpcion>>();
     }
 
     private static async Task<IResult> Listar(
@@ -83,4 +98,10 @@ public sealed class UsuariosEndpoints : IEndpointModule
 
     private static async Task<IResult> AsignarRoles(int id, AsignarRolesRequest request, UsuariosService servicio, CancellationToken ct) =>
         Results.Ok(await servicio.AsignarRolesAsync(id, request.Roles, ct));
+
+    private static async Task<IResult> AsignarContrasena(int id, AsignarContrasenaRequest request, UsuariosService servicio, CancellationToken ct)
+    {
+        await servicio.AsignarContrasenaAsync(id, request.Contrasena, ct);
+        return Results.NoContent();
+    }
 }

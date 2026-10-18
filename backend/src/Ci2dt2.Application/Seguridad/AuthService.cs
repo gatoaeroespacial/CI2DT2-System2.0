@@ -6,8 +6,6 @@ namespace Ci2dt2.Application.Seguridad;
 
 public sealed record LoginRequest(string Email, string Password);
 
-public sealed record DefinirContrasenaRequest(string Token, string NuevaContrasena);
-
 public sealed record UsuarioSesion(
     int Id, string Email, string Nombres, string Apellidos,
     IReadOnlyList<string> Roles, IReadOnlyList<int> Programas);
@@ -26,7 +24,6 @@ public sealed class AuthService(
     IApplicationDbContext db,
     IPasswordHasher hasher,
     ITokenService tokens,
-    IEnlaceContrasenaService enlaces,
     ControlIntentosLogin intentos,
     Auditoria auditoria,
     TimeProvider reloj)
@@ -43,7 +40,7 @@ public sealed class AuthService(
         var bloqueo = intentos.TiempoRestanteBloqueo(email);
         if (bloqueo is not null)
         {
-            await AuditarLoginAsync(email, null, 429, "Bloqueada", ct);
+            AuditarLogin(email, null, 429, "Bloqueada");
             return new LoginResultado(ResultadoLogin.CuentaBloqueada, TiempoBloqueo: bloqueo);
         }
 
@@ -66,13 +63,13 @@ public sealed class AuthService(
         if (!credencialesValidas)
         {
             intentos.RegistrarFallo(email);
-            await AuditarLoginAsync(email, usuario?.Id, 401, "CredencialesInvalidas", ct);
+            AuditarLogin(email, usuario?.Id, 401, "CredencialesInvalidas");
             return new LoginResultado(ResultadoLogin.CredencialesInvalidas);
         }
 
         if (!usuario!.TieneAcceso)
         {
-            await AuditarLoginAsync(email, usuario.Id, 403, "CuentaInactiva", ct);
+            AuditarLogin(email, usuario.Id, 403, "CuentaInactiva");
             return new LoginResultado(ResultadoLogin.CuentaInactiva);
         }
 
@@ -145,21 +142,6 @@ public sealed class AuthService(
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevocadoEn, ahora), ct);
     }
 
-    /// <summary>Define la contraseña con el enlace del correo de bienvenida y revoca las sesiones.</summary>
-    public async Task DefinirContrasenaAsync(DefinirContrasenaRequest request, CancellationToken ct = default)
-    {
-        const string enlaceInvalido = "El enlace no es válido, ya fue utilizado o expiró.";
-
-        var datos = enlaces.Validar(request.Token) ?? throw new ReglaNegocioException(enlaceInvalido);
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == datos.UsuarioId, ct);
-        if (usuario is null || Criptografia.SelloContrasena(usuario.PasswordHash) != datos.Sello)
-            throw new ReglaNegocioException(enlaceInvalido);
-
-        usuario.PasswordHash = hasher.Hash(request.NuevaContrasena);
-        await db.SaveChangesAsync(ct);
-        await RevocarTodosAsync(usuario.Id, ct);
-    }
-
     public static string NormalizarEmail(string? email) => (email ?? "").Trim().ToLowerInvariant();
 
     private DateTime Ahora => reloj.GetUtcNow().UtcDateTime;
@@ -169,7 +151,9 @@ public sealed class AuthService(
         var roles = usuario.Roles.Select(r => r.Rol!.Nombre).OrderBy(r => r).ToList();
         var hoy = DateOnly.FromDateTime(Ahora);
         var programas = await db.ProgramaIntegrantes
-            .Where(pi => pi.UsuarioId == usuario.Id && pi.FechaInicio <= hoy && (pi.FechaFin == null || pi.FechaFin > hoy))
+            .Where(pi => pi.UsuarioId == usuario.Id && pi.Activo
+                && (pi.FechaInicio == null || pi.FechaInicio <= hoy)
+                && (pi.FechaFin == null || pi.FechaFin > hoy))
             .Select(pi => pi.ProgramaId)
             .Distinct()
             .OrderBy(id => id)
@@ -191,10 +175,8 @@ public sealed class AuthService(
             new UsuarioSesion(usuario.Id, usuario.Email, usuario.Nombres, usuario.Apellidos, roles, programas));
     }
 
-    private Task AuditarLoginAsync(string email, int? usuarioId, int estado, string resultado, CancellationToken ct)
-    {
+    // Evento de autenticación (HU-28 CA-3): IP, fecha UTC y resultado. Se escribe de forma asíncrona.
+    private void AuditarLogin(string email, int? usuarioId, int estado, string resultado) =>
         auditoria.Registrar("Auth", "LOGIN", usuarioId?.ToString(), estado,
             valoresNuevos: new { email, resultado }, usuarioId: usuarioId);
-        return db.SaveChangesAsync(ct);
-    }
 }

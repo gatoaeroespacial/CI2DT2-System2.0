@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { aPeticionUsuario, esquemaDefinirContrasena, esquemaLogin, esquemaUsuario, type DatosUsuario } from "./esquemas";
+import {
+  aPeticionUsuario, digitoVerificacionNit, enCop, esquemaAliado, esquemaAsignarContrasena, esquemaFuente, esquemaLogin,
+  esquemaProyecto, esquemaUsuario, esquemaUsuarioNuevo, nitValido, validarArchivo, type DatosAliado, type DatosFuente,
+  type DatosProyecto, type DatosUsuario,
+} from "./esquemas";
+import { formatoCop } from "./formato";
 import { fechaLarga } from "./fechas";
 
 const usuario = (cambios: Partial<DatosUsuario> = {}): DatosUsuario => ({
@@ -15,6 +20,7 @@ const usuario = (cambios: Partial<DatosUsuario> = {}): DatosUsuario => ({
   orcid: "",
   aliadoId: "",
   roles: ["Investigador"],
+  contrasena: "",
   ...cambios,
 });
 
@@ -57,8 +63,8 @@ describe("usuario (HU-04)", () => {
 });
 
 describe("política de contraseña", () => {
-  const ok = (nuevaContrasena: string, confirmacion = nuevaContrasena) =>
-    esquemaDefinirContrasena.safeParse({ nuevaContrasena, confirmacion }).success;
+  const ok = (contrasena: string, confirmacion = contrasena) =>
+    esquemaAsignarContrasena.safeParse({ contrasena, confirmacion }).success;
 
   it("mínimo 10 caracteres con mayúscula, minúscula y número", () => {
     expect(ok("Valida12345")).toBe(true);
@@ -70,6 +76,84 @@ describe("política de contraseña", () => {
 
   it("la confirmación debe coincidir", () => {
     expect(ok("Valida12345", "Valida123456")).toBe(false);
+  });
+});
+
+describe("usuario nuevo (HU-04)", () => {
+  it("exige la contraseña inicial con la política", () => {
+    expect(esquemaUsuarioNuevo.safeParse({ ...usuario(), contrasena: "corta" }).success).toBe(false);
+    expect(esquemaUsuarioNuevo.safeParse({ ...usuario(), contrasena: "Valida12345" }).success).toBe(true);
+  });
+});
+
+describe("aliado (HU-07)", () => {
+  const aliado = (cambios: Partial<DatosAliado> = {}): DatosAliado => ({
+    tipoAliadoId: "1", nombre: "Universidad de Caldas", nit: "890801063-0", pais: "Colombia",
+    ciudad: "", sector: "", representanteLegal: "", email: "contacto@ucaldas.edu.co", ...cambios,
+  });
+
+  it("calcula el dígito de verificación de la DIAN", () => {
+    expect(digitoVerificacionNit("890801063")).toBe(0);
+    expect(nitValido("890801063-0")).toBe(true);
+    expect(nitValido("890801063-1")).toBe(false);
+  });
+
+  it("exige NIT válido solo a aliados colombianos", () => {
+    expect(esquemaAliado.safeParse(aliado()).success).toBe(true);
+    expect(esquemaAliado.safeParse(aliado({ nit: "" })).success).toBe(false);
+    expect(esquemaAliado.safeParse(aliado({ nit: "", pais: "España" })).success).toBe(true);
+  });
+});
+
+describe("proyecto (HU-08)", () => {
+  const proyecto = (cambios: Partial<DatosProyecto> = {}): DatosProyecto => ({
+    titulo: "Propuesta de investigación", resumen: "", programaId: "1", tipoProyectoId: "1", investigadorPrincipalId: "",
+    fechaInicio: "", fechaFin: "", moneda: "", presupuestoTotal: "", tasaCambio: "", ...cambios,
+  });
+  const valido = (d: DatosProyecto) => esquemaProyecto.safeParse(d).success;
+
+  it("título entre 10 y 300 caracteres", () => {
+    expect(valido(proyecto({ titulo: "Corto" }))).toBe(false);
+    expect(valido(proyecto())).toBe(true);
+  });
+
+  it("la fecha de fin debe ser posterior a la de inicio", () => {
+    expect(valido(proyecto({ fechaInicio: "2026-05-01", fechaFin: "2026-05-01" }))).toBe(false);
+    expect(valido(proyecto({ fechaInicio: "2026-05-01", fechaFin: "2026-05-02" }))).toBe(true);
+  });
+
+  it("exige tasa de cambio si la moneda no es COP y convierte a pesos", () => {
+    expect(valido(proyecto({ moneda: "USD", presupuestoTotal: "1000" }))).toBe(false);
+    expect(valido(proyecto({ moneda: "USD", presupuestoTotal: "1000", tasaCambio: "4000" }))).toBe(true);
+    expect(enCop(1000, "USD", 4000)).toBe(4_000_000);
+    expect(enCop(1000, "COP", null)).toBe(1000);
+  });
+
+  it("formatea pesos colombianos", () => {
+    expect(formatoCop(40_000_000)).toBe("$40.000.000 COP");
+  });
+});
+
+describe("fuente de financiamiento (HU-10)", () => {
+  const fuente = (cambios: Partial<DatosFuente> = {}): DatosFuente => ({
+    aliadoId: "", tipoFuente: "Convocatoria", tipoAporte: "Efectivo", moneda: "COP", monto: "100", tasaCambio: "", estado: "Estimado", ...cambios,
+  });
+
+  it("la cofinanciación exige aliado", () => {
+    expect(esquemaFuente.safeParse(fuente({ tipoFuente: "Cofinanciación" })).success).toBe(false);
+    expect(esquemaFuente.safeParse(fuente({ tipoFuente: "Cofinanciación", aliadoId: "3" })).success).toBe(true);
+  });
+
+  it("el monto debe ser mayor que 0", () => {
+    expect(esquemaFuente.safeParse(fuente({ monto: "0" })).success).toBe(false);
+  });
+});
+
+describe("documentos (HU-21)", () => {
+  it("valida formato y tamaño máximo de 25 MB", () => {
+    expect(validarArchivo("acta.pdf", 1000)).toBeNull();
+    expect(validarArchivo("script.exe", 1000)).not.toBeNull();
+    expect(validarArchivo("grande.zip", 26 * 1024 * 1024)).not.toBeNull();
   });
 });
 

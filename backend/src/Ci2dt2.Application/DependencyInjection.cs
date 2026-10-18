@@ -1,5 +1,9 @@
 using Ci2dt2.Application.Aliados;
+using Ci2dt2.Application.Catalogos;
 using Ci2dt2.Application.Common;
+using Ci2dt2.Application.Documentos;
+using Ci2dt2.Application.Programas;
+using Ci2dt2.Application.Proyectos;
 using Ci2dt2.Application.Seguridad;
 using Ci2dt2.Application.Usuarios;
 using FluentValidation;
@@ -21,7 +25,15 @@ public static class DependencyInjection
         services.AddScoped<AuthService>();
         services.AddScoped<UsuariosService>();
         services.AddScoped<UsuariosQueries>();
+        services.AddScoped<Notificador>();
         services.AddScoped<AliadosQueries>();
+        services.AddScoped<AliadosService>();
+        services.AddScoped<CatalogosQueries>();
+        services.AddScoped<ProgramasQueries>();
+        services.AddScoped<ProgramasService>();
+        services.AddScoped<ProyectosQueries>();
+        services.AddScoped<ProyectosService>();
+        services.AddScoped<DocumentosService>();
         return services;
     }
 }

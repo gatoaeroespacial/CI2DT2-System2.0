@@ -1,5 +1,7 @@
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Seguridad;
+using Ci2dt2.Infrastructure.Archivos;
+using Ci2dt2.Infrastructure.Auditoria;
 using Ci2dt2.Infrastructure.Email;
 using Ci2dt2.Infrastructure.Persistence;
 using Ci2dt2.Infrastructure.Seguridad;
@@ -15,7 +17,13 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuracion)
     {
         // La configuración se lee al resolver los servicios (permite sobrescribirla en pruebas).
-        services.AddDbContext<AppDbContext>((sp, o) => o.UseSqlServer(CadenaConexion(sp.GetRequiredService<IConfiguration>())));
+        services.AddScoped<CapturaCambios>();
+        services.AddScoped<ICambiosPeticion>(sp => sp.GetRequiredService<CapturaCambios>());
+        services.AddDbContext<AppDbContext>((sp, o) => o
+            .UseSqlServer(CadenaConexion(sp.GetRequiredService<IConfiguration>()))
+            .AddInterceptors(
+                new ColumnasAuditoriaInterceptor(sp.GetService<IContextoPeticion>(), sp.GetRequiredService<TimeProvider>()),
+                sp.GetRequiredService<CapturaCambios>()));
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
         services.AddScoped<InicializadorBaseDatos>();
@@ -24,13 +32,20 @@ public static class DependencyInjection
         services.Configure<OpcionesSmtp>(configuracion.GetSection(OpcionesSmtp.Seccion));
         services.Configure<OpcionesBaseDatos>(configuracion.GetSection(OpcionesBaseDatos.Seccion));
         services.Configure<OpcionesAdminInicial>(configuracion.GetSection(OpcionesAdminInicial.Seccion));
-        services.Configure<OpcionesFrontend>(configuracion.GetSection(OpcionesFrontend.Seccion));
+        services.Configure<OpcionesArchivos>(configuracion.GetSection(OpcionesArchivos.Seccion));
+
+        // Auditoría asíncrona (HU-28): cola en memoria y worker en segundo plano.
+        services.AddSingleton<ColaAuditoria>();
+        services.AddSingleton<IColaAuditoria>(sp => sp.GetRequiredService<ColaAuditoria>());
+        services.AddHostedService<AuditoriaWorker>();
+
+        services.AddSingleton<IAlmacenArchivos, AlmacenArchivosDisco>();
+        services.AddSingleton<IEnlaceDescarga, EnlaceDescargaService>();
 
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
-        services.AddSingleton<IEnlaceContrasenaService, EnlaceContrasenaService>();
 
-        // Llaves persistentes para que los enlaces de contraseña sobrevivan a los reinicios.
+        // Llaves persistentes para que las URL firmadas de descarga sobrevivan a los reinicios.
         var dataProtection = services.AddDataProtection().SetApplicationName("Ci2dt2");
         var rutaLlaves = configuracion["DataProtection:RutaLlaves"];
         if (!string.IsNullOrWhiteSpace(rutaLlaves))

@@ -10,7 +10,6 @@ internal sealed class ProgramaConfig : IEntityTypeConfiguration<Programa>
     {
         b.ToTable("Programas");
         b.Property(x => x.Nombre).HasMaxLength(150).IsRequired();
-        b.Property(x => x.Descripcion);
         b.HasData(DatosSemilla.Programas);
     }
 }
@@ -20,7 +19,6 @@ internal sealed class ObjetivoEspecificoConfig : IEntityTypeConfiguration<Objeti
     public void Configure(EntityTypeBuilder<ObjetivoEspecifico> b)
     {
         b.ToTable("ObjetivosEspecificos");
-        b.Property(x => x.Descripcion).IsRequired();
         b.HasOne(x => x.Programa).WithMany().HasForeignKey(x => x.ProgramaId);
     }
 }
@@ -33,6 +31,17 @@ internal sealed class ProgramaIntegranteConfig : IEntityTypeConfiguration<Progra
         b.Property(x => x.RolEnPrograma).HasMaxLength(30).IsRequired();
         b.HasOne(x => x.Programa).WithMany().HasForeignKey(x => x.ProgramaId);
         b.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.UsuarioId);
-        b.HasIndex(x => new { x.UsuarioId, x.ProgramaId });
+    }
+}
+
+internal sealed class GrupoInvestigacionConfig : IEntityTypeConfiguration<GrupoInvestigacion>
+{
+    public void Configure(EntityTypeBuilder<GrupoInvestigacion> b)
+    {
+        b.ToTable("GruposInvestigacion");
+        b.Property(x => x.Nombre).HasMaxLength(150).IsRequired();
+        b.Property(x => x.CodigoGrupLac).HasMaxLength(30);
+        b.Property(x => x.CategoriaMinciencias).HasMaxLength(10);
+        b.HasOne(x => x.Programa).WithMany().HasForeignKey(x => x.ProgramaId);
     }
 }

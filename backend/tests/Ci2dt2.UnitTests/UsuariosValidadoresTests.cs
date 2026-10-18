@@ -9,7 +9,7 @@ public class UsuariosValidadoresTests
     private static CrearUsuarioRequest Valido(
         string? orcid = null, string? cvlac = null, int? aliadoId = null, string email = "ana@ucaldas.edu.co", params string[] roles) =>
         new("Ana", "Pérez", "CC", "123", email, null, null, null, cvlac, orcid, aliadoId,
-            roles.Length == 0 ? ["Investigador"] : roles);
+            roles.Length == 0 ? ["Investigador"] : roles, "ClaveInicial123");
 
     private bool EsValido(CrearUsuarioRequest r) => _validador.Validate(r).IsValid;
 
@@ -60,4 +60,12 @@ public class UsuariosValidadoresTests
     [Fact]
     public void Rechaza_tipos_de_documento_desconocidos() =>
         Assert.False(EsValido(Valido() with { TipoDocumento = "XYZ" }));
+
+    [Fact]
+    public void Exige_una_contrasena_inicial_que_cumpla_la_politica()
+    {
+        Assert.False(EsValido(Valido() with { Contrasena = "corta" }));
+        Assert.False(EsValido(Valido() with { Contrasena = "" }));
+        Assert.True(EsValido(Valido() with { Contrasena = "OtraClave1234" }));
+    }
 }

@@ -20,5 +20,3 @@ export type UsuarioDetalle = Omit<UsuarioListado, "roles"> & {
 };
 
 export type Pagina<T> = { items: T[]; total: number; paginaActual: number; tamanoPagina: number };
-
-export type AliadoOpcion = { id: number; nombre: string };

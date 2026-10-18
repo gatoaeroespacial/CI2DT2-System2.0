@@ -1,14 +1,14 @@
 namespace Ci2dt2.Domain.Entities;
 
-// M04 Convocatorias y Financiamiento
-public class Convocatoria
+// M04 Convocatorias y financiamiento
+public class Convocatoria : EntidadAuditable
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public string? Numero { get; set; }
     public int TipoConvocatoriaId { get; set; }
     public int? EntidadConvocanteId { get; set; }
-    public string? Plataforma { get; set; }
+    public string Plataforma { get; set; } = "";
     public string? Url { get; set; }
     public DateOnly? FechaApertura { get; set; }
     public DateOnly? FechaCierre { get; set; }
@@ -19,7 +19,7 @@ public class Convocatoria
     public Aliado? EntidadConvocante { get; set; }
 }
 
-public class PropuestaConvocatoria
+public class PropuestaConvocatoria : EntidadAuditable
 {
     public int Id { get; set; }
     public int ProyectoId { get; set; }
@@ -42,18 +42,20 @@ public class PropuestaConvocatoria
     public Documento? ComprobanteDoc { get; set; }
 }
 
-public class FuenteFinanciamiento
+public class FuenteFinanciamiento : EntidadAuditable
 {
     public int Id { get; set; }
     public int ProyectoId { get; set; }
+
+    /// <summary>null = Universidad de Caldas.</summary>
     public int? AliadoId { get; set; }
-    public string TipoFuente { get; set; } = "";
-    public string TipoAporte { get; set; } = "";
-    public string Moneda { get; set; } = "COP";
-    public decimal Monto { get; set; }
+    public string? TipoFuente { get; set; }
+    public string? TipoAporte { get; set; }
+    public string? Moneda { get; set; }
+    public decimal? Monto { get; set; }
     public decimal? TasaCambio { get; set; }
     public decimal? MontoCop { get; set; }
-    public string? Estado { get; set; }
+    public string Estado { get; set; } = "";
 
     public Proyecto? Proyecto { get; set; }
     public Aliado? Aliado { get; set; }

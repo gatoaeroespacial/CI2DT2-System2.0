@@ -9,7 +9,7 @@ describe("menú por rol (HU-05 CA-3)", () => {
   });
 
   it("el Administrador ve Usuarios y el Tablero del centro", () => {
-    expect(etiquetas(["Administrador"])).toEqual(["Tablero del centro", "Proyectos", "Usuarios", "Notificaciones"]);
+    expect(etiquetas(["Admin"])).toEqual(["Tablero del centro", "Proyectos", "Programas", "Aliados", "Usuarios", "Notificaciones"]);
   });
 
   it("el Externo solo ve sus notificaciones", () => {
@@ -17,11 +17,15 @@ describe("menú por rol (HU-05 CA-3)", () => {
   });
 
   it("con varios roles el menú es la unión (CA-4)", () => {
-    expect(etiquetas(["Investigador", "Director"])).toEqual(["Tablero del centro", "Proyectos", "Notificaciones"]);
+    expect(etiquetas(["Investigador", "Director"])).toEqual(["Tablero del centro", "Proyectos", "Programas", "Aliados", "Notificaciones"]);
+  });
+
+  it("el Coordinador gestiona programas y aliados, pero no usuarios", () => {
+    expect(etiquetas(["Coordinador"])).toEqual(["Proyectos", "Programas", "Aliados", "Notificaciones"]);
   });
 
   it("protege las subrutas con los roles de la opción del menú", () => {
-    expect(rolesDeRuta("/usuarios/15")).toEqual(["Administrador"]);
+    expect(rolesDeRuta("/usuarios/15")).toEqual(["Admin"]);
     expect(tieneAlgunRol(["Coordinador"], rolesDeRuta("/usuarios/nuevo")!)).toBe(false);
     expect(rolesDeRuta("/login")).toBeUndefined();
   });
@@ -32,9 +36,9 @@ describe("página de inicio según el rol (HU-01 CA-1)", () => {
     [["Director"], "/tablero-centro"],
     [["Coordinador"], "/proyectos"],
     [["Investigador"], "/proyectos"],
-    [["Administrador"], "/usuarios"],
+    [["Admin"], "/usuarios"],
     [["Externo"], "/notificaciones"],
-    [["Administrador", "Director"], "/tablero-centro"],
+    [["Admin", "Director"], "/tablero-centro"],
   ])("%j inicia en %s", (roles, ruta) => {
     expect(inicioPara(roles)).toBe(ruta);
   });

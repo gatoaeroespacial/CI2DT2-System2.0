@@ -33,10 +33,11 @@ public class UsuariosTests(ApiFactory api)
         orcid,
         aliadoId,
         roles = roles ?? ["Investigador"],
+        contrasena = "ClaveInicial123",
     };
 
     [Fact]
-    public async Task CA1_crear_usuario_y_definir_contrasena_con_el_correo_de_bienvenida()
+    public async Task CA1_crear_usuario_con_contrasena_inicial_e_iniciar_sesion()
     {
         var admin = await AdminAsync();
         var email = ApiFactory.Unico("nuevo");
@@ -50,33 +51,68 @@ public class UsuariosTests(ApiFactory api)
         Assert.Equal(email, creado!.Email);
         Assert.True(creado.TieneAcceso);
         Assert.Equal(["Coordinador", "Investigador"], creado.Roles);
+        Assert.Equal(HttpStatusCode.OK, (await api.LoginAsync(email, "ClaveInicial123")).StatusCode);
 
-        var correo = api.Correos.UltimoPara(email);
-        Assert.NotNull(correo);
-        var token = Uri.UnescapeDataString(Regex.Match(correo!.Cuerpo, "definir-contrasena\\?token=([^\"]+)").Groups[1].Value);
-        Assert.StartsWith("http://frontend.test/definir-contrasena?token=", Regex.Match(correo.Cuerpo, "href=\"([^\"]+)\"").Groups[1].Value);
-
-        // Sin contraseña definida todavía no puede iniciar sesión.
-        Assert.Equal(HttpStatusCode.Unauthorized, (await api.LoginAsync(email, "NuevaClave123")).StatusCode);
-
-        var anonimo = api.CreateClient();
-        var debil = await anonimo.PostAsJsonAsync("/api/v1/auth/reset-password", new { token, nuevaContrasena = "debil" });
-        Assert.Equal(HttpStatusCode.BadRequest, debil.StatusCode);
-
-        var definida = await anonimo.PostAsJsonAsync("/api/v1/auth/reset-password", new { token, nuevaContrasena = "NuevaClave123" });
-        Assert.Equal(HttpStatusCode.NoContent, definida.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await api.LoginAsync(email, "NuevaClave123")).StatusCode);
-
-        // El enlace es de un solo uso.
-        var reutilizado = await anonimo.PostAsJsonAsync("/api/v1/auth/reset-password", new { token, nuevaContrasena = "OtraClave1234" });
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, reutilizado.StatusCode);
+        // La contraseña nunca se envía por correo.
+        Assert.Null(api.Correos.UltimoPara(email));
     }
 
     [Fact]
-    public async Task Un_enlace_de_contrasena_alterado_es_rechazado()
+    public async Task CA1_la_contrasena_inicial_debe_cumplir_la_politica()
     {
-        var respuesta = await api.CreateClient().PostAsJsonAsync("/api/v1/auth/reset-password",
-            new { token = "token-alterado", nuevaContrasena = "NuevaClave123" });
+        var admin = await AdminAsync();
+        var datos = new Dictionary<string, object?>
+        {
+            ["nombres"] = "Ana",
+            ["apellidos"] = "Pérez",
+            ["email"] = ApiFactory.Unico("debil"),
+            ["roles"] = new[] { "Investigador" },
+            ["contrasena"] = "debil",
+        };
+
+        var respuesta = await admin.PostAsJsonAsync("/api/v1/usuarios", datos);
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        Assert.True((await respuesta.Content.ReadFromJsonAsync<ErrorDto>())!.Errores!.ContainsKey("contrasena"));
+    }
+
+    [Fact]
+    public async Task CA6_asignar_nueva_contrasena_revoca_las_sesiones()
+    {
+        var admin = await AdminAsync();
+        var email = ApiFactory.Unico("nuevaclave");
+        var usuario = await api.CrearUsuarioAsync(email, roles: ["Investigador"]);
+        var sesion = await api.IniciarSesionAsync(email);
+
+        var debil = await admin.PutAsJsonAsync($"/api/v1/usuarios/{usuario.Id}/contrasena", new { contrasena = "corta" });
+        Assert.Equal(HttpStatusCode.BadRequest, debil.StatusCode);
+
+        var respuesta = await admin.PutAsJsonAsync($"/api/v1/usuarios/{usuario.Id}/contrasena", new { contrasena = "Renovada12345" });
+
+        Assert.Equal(HttpStatusCode.NoContent, respuesta.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.RefrescarAsync(sesion.CookieRefresco)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.LoginAsync(email, ApiFactory.PasswordPrueba)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await api.LoginAsync(email, "Renovada12345")).StatusCode);
+
+        var registro = Assert.Single(await api.EsperarLogsAsync(l => l.Recurso == "usuarios" && l.Accion == "PUT" && l.RecursoId == usuario.Id.ToString() && l.EstadoHttp == 204));
+        Assert.DoesNotContain("Renovada12345", registro.ValoresNuevos ?? "");
+        Assert.DoesNotContain("passwordHash", registro.ValoresNuevos ?? "", StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Un_usuario_sin_contrasena_no_puede_activarse()
+    {
+        var admin = await AdminAsync();
+        var jurado = await api.EnBaseDatosAsync(async db =>
+        {
+            var u = new Usuario { Email = ApiFactory.Unico("jurado"), Nombres = "Jurado", Apellidos = "Externo", TieneAcceso = false };
+            db.Usuarios.Add(u);
+            await db.SaveChangesAsync();
+            return u;
+        });
+
+        var respuesta = await admin.PatchAsJsonAsync($"/api/v1/usuarios/{jurado.Id}/estado", new { tieneAcceso = true });
+
         Assert.Equal(HttpStatusCode.UnprocessableEntity, respuesta.StatusCode);
     }
 
@@ -141,7 +177,7 @@ public class UsuariosTests(ApiFactory api)
     public async Task El_administrador_no_puede_desactivarse_a_si_mismo()
     {
         var email = ApiFactory.Unico("adminself");
-        var admin = await api.CrearUsuarioAsync(email, roles: ["Administrador"]);
+        var admin = await api.CrearUsuarioAsync(email, roles: ["Admin"]);
         var cliente = api.ClienteCon(await api.IniciarSesionAsync(email));
 
         var respuesta = await cliente.PatchAsJsonAsync($"/api/v1/usuarios/{admin.Id}/estado", new { tieneAcceso = false });
@@ -158,7 +194,7 @@ public class UsuariosTests(ApiFactory api)
 
         // Se desactivan temporalmente los demás administradores creados por otras pruebas.
         var otrosAdmins = await api.EnBaseDatosAsync(db => db.Usuarios
-            .Where(u => u.Id != adminInicialId && u.TieneAcceso && u.Roles.Any(r => r.Rol!.Nombre == "Administrador"))
+            .Where(u => u.Id != adminInicialId && u.TieneAcceso && u.Roles.Any(r => r.Rol!.Nombre == "Admin"))
             .Select(u => u.Id).ToListAsync());
         await CambiarAccesoAsync(otrosAdmins, false);
         try
@@ -240,7 +276,7 @@ public class UsuariosTests(ApiFactory api)
         var admin = await AdminAsync();
         var aliadoId = await api.EnBaseDatosAsync(async db =>
         {
-            var aliado = new Aliado { Nombre = "Aliado de prueba", TipoAliadoId = 2 };
+            var aliado = new Aliado { Nombre = "Aliado de prueba", TipoAliadoId = 2, Pais = "Suiza", Email = "aliado@pruebas.local" };
             db.Aliados.Add(aliado);
             await db.SaveChangesAsync();
             return aliado.Id;
@@ -276,9 +312,7 @@ public class UsuariosTests(ApiFactory api)
         });
         Assert.Equal(HttpStatusCode.OK, editado.StatusCode);
 
-        var registros = await api.EnBaseDatosAsync(db => db.LogActividades
-            .Where(l => l.Recurso == "Usuarios" && l.RecursoId == creado.Id.ToString())
-            .OrderBy(l => l.Id).ToListAsync());
+        var registros = await api.EsperarLogsAsync(l => l.Recurso == "usuarios" && l.RecursoId == creado.Id.ToString(), 2);
         Assert.Equal(["POST", "PUT"], registros.Select(r => r.Accion));
         Assert.Null(registros[0].ValoresAnteriores);
         Assert.Contains("\"cargo\":\"Docente\"", registros[1].ValoresAnteriores);

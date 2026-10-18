@@ -25,8 +25,9 @@ public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
         return db.ProgramaIntegrantes.AnyAsync(pi =>
             pi.UsuarioId == usuarioId &&
             pi.ProgramaId == programaId &&
+            pi.Activo &&
             pi.RolEnPrograma == RolesPrograma.Coordinador &&
-            pi.FechaInicio <= hoy &&
+            (pi.FechaInicio == null || pi.FechaInicio <= hoy) &&
             (pi.FechaFin == null || pi.FechaFin > hoy), ct);
     }
 
@@ -37,11 +38,24 @@ public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
         return db.ProyectoIntegrantes.AnyAsync(pi =>
             pi.UsuarioId == usuarioId &&
             pi.ProyectoId == proyectoId &&
+            pi.Activo &&
             (pi.FechaFin == null || pi.FechaFin > hoy), ct);
     }
 
     public Task<bool> EsInvestigadorPrincipalAsync(int usuarioId, int proyectoId, CancellationToken ct = default) =>
         db.Proyectos.AnyAsync(p => p.Id == proyectoId && p.InvestigadorPrincipalId == usuarioId, ct);
+
+    /// <summary>Adscripción vigente al programa con cualquier rol (requisito para ser IP, P1.1).</summary>
+    public Task<bool> EsAdscritoVigenteAsync(int usuarioId, int programaId, CancellationToken ct = default)
+    {
+        var hoy = Hoy;
+        return db.ProgramaIntegrantes.AnyAsync(pi =>
+            pi.UsuarioId == usuarioId &&
+            pi.ProgramaId == programaId &&
+            pi.Activo &&
+            (pi.FechaInicio == null || pi.FechaInicio <= hoy) &&
+            (pi.FechaFin == null || pi.FechaFin > hoy), ct);
+    }
 
     /// <summary>
     /// Celdas "Su programa" del Anexo A: Administrador y Director sobre todos los programas,
@@ -56,7 +70,8 @@ public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
 
     /// <summary>
     /// "Ver proyectos": Administrador y Director todos; Coordinador los de su programa;
-    /// Investigador solo aquellos donde es integrante. Externo no accede.
+    /// Investigador aquellos donde es o fue integrante ("Mis proyectos" incluye vinculaciones
+    /// vigentes e históricas, HU-13). Externo no accede.
     /// </summary>
     public async Task<bool> PuedeVerProyectoAsync(UsuarioAutenticado usuario, int proyectoId, CancellationToken ct = default)
     {
@@ -66,8 +81,12 @@ public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
         if (usuario.Tiene(Roles.Coordinador) && await EsCoordinadorDelProyectoAsync(usuario.Id, proyectoId, ct))
             return true;
 
-        return usuario.Tiene(Roles.Investigador) && await EsIntegranteProyectoAsync(usuario.Id, proyectoId, ct);
+        return usuario.Tiene(Roles.Investigador) && await EsOFueIntegranteProyectoAsync(usuario.Id, proyectoId, ct);
     }
+
+    /// <summary>Vinculación vigente o histórica al proyecto.</summary>
+    public Task<bool> EsOFueIntegranteProyectoAsync(int usuarioId, int proyectoId, CancellationToken ct = default) =>
+        db.ProyectoIntegrantes.AnyAsync(pi => pi.UsuarioId == usuarioId && pi.ProyectoId == proyectoId && pi.Activo, ct);
 
     /// <summary>
     /// Operaciones de escritura sobre un proyecto con alcance "Su programa" para el Coordinador
@@ -84,7 +103,7 @@ public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
         return usuario.Tiene(Roles.Investigador) && await EsInvestigadorPrincipalAsync(usuario.Id, proyectoId, ct);
     }
 
-    private async Task<bool> EsCoordinadorDelProyectoAsync(int usuarioId, int proyectoId, CancellationToken ct)
+    public async Task<bool> EsCoordinadorDelProyectoAsync(int usuarioId, int proyectoId, CancellationToken ct = default)
     {
         var programaId = await db.Proyectos.Where(p => p.Id == proyectoId)
             .Select(p => (int?)p.ProgramaId).FirstOrDefaultAsync(ct);

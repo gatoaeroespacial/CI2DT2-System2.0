@@ -5,13 +5,13 @@ using Ci2dt2.Domain.Entities;
 namespace Ci2dt2.Application.Common;
 
 /// <summary>
-/// Agrega registros a LogActividades. El registro se guarda en el mismo SaveChanges
-/// que la operación auditada. Nunca se deben pasar contraseñas, hashes ni tokens.
+/// Construye registros de LogActividades y los encola para escritura asíncrona (HU-28).
+/// Nunca se deben pasar contraseñas, hashes ni tokens.
 /// </summary>
-public sealed class Auditoria(IApplicationDbContext db, IContextoPeticion contexto, TimeProvider reloj)
+public sealed class Auditoria(IColaAuditoria cola, IContextoPeticion contexto, TimeProvider reloj)
 {
     // Se guarda en la base de datos (no en HTML): se conservan las tildes sin escapar.
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
+    public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
@@ -25,13 +25,13 @@ public sealed class Auditoria(IApplicationDbContext db, IContextoPeticion contex
         object? valoresNuevos = null,
         int? usuarioId = null)
     {
-        db.LogActividades.Add(new LogActividad
+        cola.Encolar(new LogActividad
         {
             UsuarioId = usuarioId ?? contexto.UsuarioId,
             IpOrigen = Recortar(contexto.Ip, 45),
-            Recurso = recurso,
-            RecursoId = recursoId,
-            Accion = accion,
+            Recurso = Recortar(recurso, 60)!,
+            RecursoId = Recortar(recursoId, 40),
+            Accion = Recortar(accion, 10)!,
             Ruta = Recortar(contexto.Ruta, 300),
             EstadoHttp = estadoHttp,
             ValoresAnteriores = valoresAnteriores is null ? null : JsonSerializer.Serialize(valoresAnteriores, Json),

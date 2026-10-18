@@ -20,7 +20,8 @@ internal sealed class UsuarioConfig : IEntityTypeConfiguration<Usuario>
 {
     public void Configure(EntityTypeBuilder<Usuario> b)
     {
-        b.ToTable("Usuarios");
+        b.ToTable("Usuarios", t =>
+            t.HasCheckConstraint("CK_Usuarios_PasswordSiTieneAcceso", "[TieneAcceso] = 0 OR [PasswordHash] IS NOT NULL"));
         b.Property(x => x.Email).HasMaxLength(150).IsRequired();
         b.Property(x => x.PasswordHash).HasMaxLength(200);
         b.Property(x => x.Nombres).HasMaxLength(100).IsRequired();

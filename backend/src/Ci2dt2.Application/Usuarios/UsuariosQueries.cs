@@ -39,9 +39,8 @@ public sealed class UsuariosQueries(IDbConnectionFactory conexiones)
         var busqueda = string.IsNullOrWhiteSpace(filtro.Busqueda) ? null : $"%{EscaparLike(filtro.Busqueda.Trim())}%";
         var parametros = new
         {
-            // Columnas varchar: parámetros ANSI para no forzar conversiones implícitas.
-            Busqueda = new DbString { Value = busqueda, IsAnsi = true, Length = 4000 },
-            Rol = new DbString { Value = string.IsNullOrWhiteSpace(filtro.Rol) ? null : filtro.Rol, IsAnsi = true, Length = 50 },
+            Busqueda = busqueda,
+            Rol = string.IsNullOrWhiteSpace(filtro.Rol) ? null : filtro.Rol,
             filtro.TieneAcceso,
             Offset = (pagina - 1) * TamanoPagina,
             Tamano = TamanoPagina,
@@ -77,6 +76,27 @@ public sealed class UsuariosQueries(IDbConnectionFactory conexiones)
         }).ToList();
 
         return new Pagina<UsuarioListadoItem>(items, total, pagina, TamanoPagina);
+    }
+
+    /// <summary>
+    /// Búsqueda de usuarios activos con acceso para vincularlos a programas o proyectos
+    /// (HU-06 y HU-09: "el integrante debe existir como usuario").
+    /// </summary>
+    public async Task<IReadOnlyList<UsuarioOpcion>> BuscarAsync(string? texto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(texto) || texto.Trim().Length < 2)
+            return [];
+        const string sql = """
+            SELECT TOP 10 u.Id, u.Nombres + ' ' + u.Apellidos AS Nombre, u.Email
+            FROM Usuarios u
+            WHERE u.Activo = 1 AND u.TieneAcceso = 1
+              AND ((u.Nombres + ' ' + u.Apellidos) LIKE @filtro ESCAPE '\' OR u.Email LIKE @filtro ESCAPE '\'
+                   OR u.NumeroDocumento LIKE @filtro ESCAPE '\')
+            ORDER BY u.Apellidos, u.Nombres
+            """;
+        using var conexion = conexiones.Crear();
+        return (await conexion.QueryAsync<UsuarioOpcion>(new CommandDefinition(sql,
+            new { filtro = $"%{EscaparLike(texto.Trim())}%" }, cancellationToken: ct))).ToList();
     }
 
     private static string EscaparLike(string valor) =>

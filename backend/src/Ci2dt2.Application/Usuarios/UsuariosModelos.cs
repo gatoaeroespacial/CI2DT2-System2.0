@@ -12,7 +12,8 @@ public sealed record CrearUsuarioRequest(
     string? CvLacUrl,
     string? Orcid,
     int? AliadoId,
-    IReadOnlyList<string> Roles) : IDatosUsuario;
+    IReadOnlyList<string> Roles,
+    string Contrasena) : IDatosUsuario;
 
 public sealed record ActualizarUsuarioRequest(
     string Nombres,
@@ -28,6 +29,9 @@ public sealed record ActualizarUsuarioRequest(
     int? AliadoId) : IDatosUsuario;
 
 public sealed record CambiarEstadoUsuarioRequest(bool? TieneAcceso);
+
+/// <summary>Nueva contraseña asignada por el Administrador (HU-04 CA-6).</summary>
+public sealed record AsignarContrasenaRequest(string Contrasena);
 
 public sealed record AsignarRolesRequest(IReadOnlyList<string> Roles);
 
@@ -76,3 +80,5 @@ public sealed class UsuarioListadoItem
 }
 
 public sealed record FiltroUsuarios(string? Busqueda, string? Rol, bool? TieneAcceso, int Pagina = 1);
+
+public sealed record UsuarioOpcion(int Id, string Nombre, string Email);

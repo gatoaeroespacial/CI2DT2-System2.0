@@ -1,5 +1,5 @@
 export const ROLES = {
-  Administrador: "Administrador",
+  Administrador: "Admin",
   Director: "Director",
   Coordinador: "Coordinador",
   Investigador: "Investigador",
@@ -21,6 +21,8 @@ export type ItemMenu = { href: string; etiqueta: string; roles: Rol[] };
 export const MENU: ItemMenu[] = [
   { href: "/tablero-centro", etiqueta: "Tablero del centro", roles: [Administrador, Director] },
   { href: "/proyectos", etiqueta: "Proyectos", roles: [Administrador, Director, Coordinador, Investigador] },
+  { href: "/programas", etiqueta: "Programas", roles: [Administrador, Director, Coordinador] },
+  { href: "/aliados", etiqueta: "Aliados", roles: [Administrador, Director, Coordinador] },
   { href: "/usuarios", etiqueta: "Usuarios", roles: [Administrador] },
   { href: "/notificaciones", etiqueta: "Notificaciones", roles: [Administrador, Director, Coordinador, Investigador, Externo] },
 ];

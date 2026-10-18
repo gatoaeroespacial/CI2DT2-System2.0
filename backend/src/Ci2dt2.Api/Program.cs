@@ -106,7 +106,7 @@ app.Use((http, next) =>
     return next(http);
 });
 app.UseAuthentication();
-app.UseMiddleware<AuditoriaAccesoDenegadoMiddleware>();
+app.UseMiddleware<AuditoriaMiddleware>();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health").AllowAnonymous();

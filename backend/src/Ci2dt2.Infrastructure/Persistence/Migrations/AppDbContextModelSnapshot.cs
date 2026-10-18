@@ -30,50 +30,108 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Ciudad")
                         .HasMaxLength(80)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Nit")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Pais")
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("RepresentanteLegal")
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Sector")
                         .HasMaxLength(80)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<int>("TipoAliadoId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("TipoAliadoId");
 
                     b.ToTable("Aliados", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Asistencia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InscripcionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Presente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("SesionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("InscripcionId");
+
+                    b.HasIndex("SesionId");
+
+                    b.ToTable("Asistencias", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Avance", b =>
@@ -84,19 +142,33 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("AutorId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EstadoValidacion")
                         .HasMaxLength(15)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
-                    b.Property<DateTime>("FechaCaptura")
+                    b.Property<DateTime?>("FechaCaptura")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("HitoId")
@@ -114,10 +186,8 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(9,6)");
 
                     b.Property<string>("OrigenRegistro")
-                        .IsRequired()
                         .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<decimal?>("PorcentajeAvance")
                         .HasPrecision(5, 2)
@@ -133,16 +203,21 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AutorId");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("HitoId");
 
-                    b.HasIndex("ProyectoId");
+                    b.HasIndex("IdCliente")
+                        .IsUnique()
+                        .HasFilter("[IdCliente] IS NOT NULL");
+
+                    b.HasIndex("ProyectoId", "FechaCaptura");
 
                     b.ToTable("Avances", (string)null);
                 });
@@ -155,23 +230,39 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("AvanceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
                         .HasColumnType("int");
 
                     b.Property<string>("TipoMime")
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("UrlArchivo")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(400)");
+                        .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AvanceId");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("AvancesAdjuntos", (string)null);
                 });
@@ -184,15 +275,30 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("AvanceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Observaciones")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Periodo")
                         .HasMaxLength(7)
@@ -205,15 +311,13 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("Resultado")
-                        .IsRequired()
                         .HasMaxLength(15)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<string>("RolValidador")
+                        .IsRequired()
                         .HasMaxLength(15)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<int>("ValidadorId")
                         .HasColumnType("int");
@@ -222,9 +326,145 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AvanceId");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("ValidadorId");
 
                     b.ToTable("AvanceValidaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Calificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Actividad")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<int>("InscripcionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Nota")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal(4,2)");
+
+                    b.Property<decimal?>("PesoPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("InscripcionId");
+
+                    b.ToTable("Calificaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Certificado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CodigoVerificacion")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EnviadoEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("FechaEmision")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FirmaCoordinadorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FirmaDirectorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HashCertificado")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<int>("InscripcionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TxHashBlockchain")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UrlVerificacion")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoVerificacion")
+                        .IsUnique()
+                        .HasFilter("[CodigoVerificacion] IS NOT NULL");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("FirmaCoordinadorId");
+
+                    b.HasIndex("FirmaDirectorId");
+
+                    b.HasIndex("InscripcionId")
+                        .IsUnique();
+
+                    b.ToTable("Certificados", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ConsentimientoDatos", b =>
@@ -236,17 +476,18 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<bool>("Aceptado")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Contexto")
+                        .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Correo")
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTime>("FechaAceptacion")
                         .HasColumnType("datetime2");
@@ -259,8 +500,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("IpOrigen")
                         .HasMaxLength(45)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(45)");
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<int>("PoliticaId")
                         .HasColumnType("int");
@@ -274,7 +514,12 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("ConsentimientosDatos", (string)null);
+                    b.ToTable("ConsentimientosDatos", null, t =>
+                        {
+                            t.HasTrigger("TR_ConsentimientosDatos_Inmutable");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Convocatoria", b =>
@@ -284,6 +529,22 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("EntidadConvocanteId")
                         .HasColumnType("int");
@@ -307,28 +568,27 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(250)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(250)");
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("Numero")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Plataforma")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TipoConvocatoriaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Url")
                         .HasMaxLength(400)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(400)");
+                        .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("EntidadConvocanteId");
 
@@ -345,6 +605,22 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("EventoId")
                         .HasColumnType("int");
 
@@ -354,17 +630,25 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<int?>("ProyectoId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("EventoId");
+
+                    b.HasIndex("FormacionId");
+
                     b.HasIndex("ProyectoId");
 
-                    b.ToTable("Cronogramas", (string)null);
+                    b.ToTable("Cronogramas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Cronogramas_UnaEntidad", "IIF([ProyectoId] IS NULL, 0, 1) + IIF([FormacionId] IS NULL, 0, 1) + IIF([EventoId] IS NULL, 0, 1) = 1");
+                        });
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Documento", b =>
@@ -375,17 +659,33 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("EntidadId")
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EntidadId")
                         .HasColumnType("int");
 
                     b.Property<string>("EntidadTipo")
-                        .IsRequired()
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<bool>("EsPublico")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("FechaSubida")
                         .HasColumnType("datetime2");
@@ -400,8 +700,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("NombreArchivo")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("SubidoPorId")
                         .HasColumnType("int");
@@ -412,13 +711,14 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("UrlArchivo")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(400)");
+                        .HasColumnType("nvarchar(400)");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("SubidoPorId");
 
@@ -429,6 +729,59 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.ToTable("Documentos", (string)null);
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.DocumentoFirma", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("DocumentoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaFirma")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FirmanteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HashDocumento")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("HashEncadenado")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("IpFirma")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<string>("RolFirmante")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentoId");
+
+                    b.HasIndex("FirmanteId");
+
+                    b.ToTable("DocumentoFirmas", null, t =>
+                        {
+                            t.HasTrigger("TR_DocumentoFirmas_Inmutable");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.EstadoProyecto", b =>
                 {
                     b.Property<int>("Id")
@@ -437,19 +790,38 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("EsFinal")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
-                    b.Property<int>("Orden")
+                    b.Property<int?>("Orden")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("EstadosProyecto", (string)null);
 
@@ -457,6 +829,8 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             EsFinal = false,
                             Nombre = "En elaboración",
                             Orden = 1
@@ -464,38 +838,490 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             EsFinal = false,
-                            Nombre = "Presentado",
+                            Nombre = "En revisión",
                             Orden = 2
                         },
                         new
                         {
                             Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             EsFinal = false,
-                            Nombre = "Aprobado",
+                            Nombre = "Devuelto",
                             Orden = 3
                         },
                         new
                         {
                             Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             EsFinal = false,
-                            Nombre = "En ejecución",
+                            Nombre = "Presentado",
                             Orden = 4
                         },
                         new
                         {
                             Id = 5,
-                            EsFinal = true,
-                            Nombre = "Finalizado",
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EsFinal = false,
+                            Nombre = "Aprobado",
                             Orden = 5
                         },
                         new
                         {
                             Id = 6,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EsFinal = false,
+                            Nombre = "En ejecución",
+                            Orden = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EsFinal = true,
+                            Nombre = "Finalizado",
+                            Orden = 7
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             EsFinal = true,
                             Nombre = "No aprobado",
-                            Orden = 6
+                            Orden = 8
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EsFinal = false,
+                            Nombre = "Suspendido",
+                            Orden = 9
                         });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Evento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Agenda")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CupoMaximo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateTime?>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Lugar")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ModalidadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ResponsableLogisticaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoEventoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ModalidadId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.HasIndex("ResponsableLogisticaId");
+
+                    b.HasIndex("TipoEventoId");
+
+                    b.ToTable("Eventos", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.EventoAsistente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AliadoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cargo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("ConsentimientoId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<int>("EventoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("HoraRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Retroalimentacion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AliadoId");
+
+                    b.HasIndex("ConsentimientoId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("EventoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("EventoAsistentes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Formacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("AsistenciaMinimaPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("AutorizadaPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CupoMaximo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<DateOnly?>("FechaAutorizacion")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaFin")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaFinInscripcion")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaInicio")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaInicioInscripcion")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("IntensidadHoras")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MetaFinancieraCop")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ModalidadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("NotaMinima")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal(4,2)");
+
+                    b.Property<int>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PuntoEquilibrio")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoFormacionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ValorMatricula")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AutorizadaPorId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ModalidadId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.HasIndex("TipoFormacionId");
+
+                    b.ToTable("Formaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FormacionDocente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DocenteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FormacionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocenteId");
+
+                    b.HasIndex("FormacionId");
+
+                    b.ToTable("FormacionDocentes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FormacionSesion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocenteId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FormacionId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("HoraFin")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("HoraInicio")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Tema")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocenteId");
+
+                    b.HasIndex("FormacionId");
+
+                    b.ToTable("FormacionSesiones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FuenteConocimiento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocumentoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EntidadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntidadTipo")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("EsPublica")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("EstadoIndexacion")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<DateTime?>("FechaIndexacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HashContenido")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("IdVectorStore")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TipoFuente")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocumentoId");
+
+                    b.HasIndex("EntidadTipo", "EntidadId");
+
+                    b.ToTable("FuentesConocimiento", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.FuenteFinanciamiento", b =>
@@ -506,22 +1332,37 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("AliadoId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Estado")
+                        .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Moneda")
-                        .IsRequired()
                         .HasMaxLength(3)
                         .IsUnicode(false)
                         .HasColumnType("char(3)")
                         .IsFixedLength();
 
-                    b.Property<decimal>("Monto")
+                    b.Property<decimal?>("Monto")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -537,24 +1378,71 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("TipoAporte")
-                        .IsRequired()
                         .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("TipoFuente")
-                        .IsRequired()
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AliadoId");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("ProyectoId");
 
                     b.ToTable("FuentesFinanciamiento", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.GrupoInvestigacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CategoriaMinciencias")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("CodigoGrupLac")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.ToTable("GruposInvestigacion", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Hito", b =>
@@ -565,7 +1453,23 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AlertarDias")
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AlertarDias")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
                         .HasColumnType("int");
 
                     b.Property<int>("CronogramaId")
@@ -574,8 +1478,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasMaxLength(15)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<DateOnly?>("FechaCompletado")
                         .HasColumnType("date");
@@ -583,7 +1486,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("FechaLimite")
                         .HasColumnType("date");
 
-                    b.Property<int>("Orden")
+                    b.Property<int?>("Orden")
                         .HasColumnType("int");
 
                     b.Property<int?>("ResponsableId")
@@ -595,10 +1498,11 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("CronogramaId");
 
@@ -606,7 +1510,203 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TipoHitoId");
 
+                    b.HasIndex("FechaLimite", "Estado");
+
                     b.ToTable("Hitos", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Indicador", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ConsultaClave")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Periodicidad")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("UmbralAmarilloPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("UmbralVerdePct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Unidad")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.ToTable("Indicadores", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.IndicadorMedicion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FechaCalculo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IndicadorId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Meta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Periodo")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<string>("Semaforo")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<decimal?>("ValorActual")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("IndicadorId", "Periodo");
+
+                    b.ToTable("IndicadorMediciones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Inscripcion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ConsentimientoId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<int>("FormacionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HabilitadoCertificacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal?>("NotaFinal")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal(4,2)");
+
+                    b.Property<decimal?>("PorcentajeAsistencia")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("SoportePagoDocId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ValorPagado")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsentimientoId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("SoportePagoDocId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("FormacionId", "UsuarioId")
+                        .IsUnique();
+
+                    b.ToTable("Inscripciones", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.LogActividad", b =>
@@ -620,8 +1720,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Accion")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int?>("EstadoHttp")
                         .HasColumnType("int");
@@ -637,43 +1736,101 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("IpOrigen")
                         .HasMaxLength(45)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(45)");
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<string>("Recurso")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("RecursoId")
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("Ruta")
                         .HasMaxLength(300)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(300)");
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
 
                     b.Property<string>("ValoresAnteriores")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ValoresNuevos")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FechaUtc");
+                    b.HasIndex("Recurso", "RecursoId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId", "FechaUtc");
 
-                    b.ToTable("LogActividades", (string)null);
+                    b.ToTable("LogActividades", null, t =>
+                        {
+                            t.HasTrigger("TR_LogActividades_Inmutable");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Modalidad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.ToTable("Modalidades", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Presencial"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Virtual"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Híbrido"
+                        });
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Notificacion", b =>
@@ -684,11 +1841,31 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("EnviadaEmail")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("EnviadaPush")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime?>("FechaEnvioEmail")
                         .HasColumnType("datetime2");
@@ -696,47 +1873,47 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("FechaEnvioPush")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Intentos")
+                    b.Property<int?>("Intentos")
                         .HasColumnType("int");
 
                     b.Property<bool>("Leida")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Mensaje")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ReferenciaId")
                         .HasColumnType("int");
 
                     b.Property<string>("ReferenciaTipo")
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("UltimoError")
                         .HasMaxLength(300)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(300)");
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("UsuarioId", "Leida");
 
                     b.ToTable("Notificaciones", (string)null);
                 });
@@ -749,18 +1926,34 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
-                    b.Property<int>("Orden")
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Orden")
                         .HasColumnType("int");
 
                     b.Property<int>("ProgramaId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("ProgramaId");
 
@@ -775,6 +1968,22 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("HashTexto")
                         .HasMaxLength(64)
                         .IsUnicode(false)
@@ -782,15 +1991,14 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .IsFixedLength();
 
                     b.Property<string>("TextoUrl")
+                        .IsRequired()
                         .HasMaxLength(400)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(400)");
+                        .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Version")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateOnly>("VigenteDesde")
                         .HasColumnType("date");
@@ -800,16 +2008,71 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.ToTable("PoliticasTratamientoDatos", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             TextoUrl = "/politica-datos",
                             Version = "1.0",
                             VigenteDesde = new DateOnly(2026, 10, 7)
                         });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PreferenciaNotificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RecibirEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("RecibirPush")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("PreferenciasNotificacion", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Programa", b =>
@@ -820,17 +2083,33 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("Programas", (string)null);
 
@@ -838,26 +2117,36 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Biotecnología y Agroindustria"
                         },
                         new
                         {
                             Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Bioingeniería"
                         },
                         new
                         {
                             Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Inteligencia Artificial, Modelado y Simulación"
                         },
                         new
                         {
                             Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Sistemas Computacionales y Bioinformática"
                         },
                         new
                         {
                             Id = 5,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Ciudades Inteligentes"
                         });
                 });
@@ -870,9 +2159,27 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<int>("AliadoId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.HasKey("ProgramaId", "AliadoId");
 
                     b.HasIndex("AliadoId");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("ProgramaAliados", (string)null);
                 });
@@ -885,10 +2192,26 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly?>("FechaFin")
                         .HasColumnType("date");
 
-                    b.Property<DateOnly>("FechaInicio")
+                    b.Property<DateOnly?>("FechaInicio")
                         .HasColumnType("date");
 
                     b.Property<int>("ProgramaId")
@@ -897,19 +2220,138 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("RolEnPrograma")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("ProgramaId");
 
-                    b.HasIndex("UsuarioId", "ProgramaId");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("ProgramaIntegrantes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PropiedadIntelectual", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntidadTramite")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<DateOnly?>("FechaConcesion")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaRadicacion")
+                        .HasColumnType("date");
+
+                    b.Property<string>("NumeroRadicado")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NumeroRegistro")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NumeroResolucion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal?>("ParticipacionUcaldasPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.ToTable("PropiedadIntelectual", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PropiedadIntelectualAutor", b =>
+                {
+                    b.Property<int>("PropiedadIntelectualId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ParticipacionPct")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("RolAutor")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.HasKey("PropiedadIntelectualId", "UsuarioId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("PropiedadIntelectualAutores", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.PropuestaConvocatoria", b =>
@@ -920,10 +2362,17 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CodigoMga")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int?>("ComprobanteDocId")
                         .HasColumnType("int");
@@ -931,10 +2380,17 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<int>("ConvocatoriaId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("FaseExterna")
                         .HasMaxLength(40)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<DateOnly?>("FechaPresentacion")
                         .HasColumnType("date");
@@ -944,8 +2400,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("IdPostulacionExterna")
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("Moneda")
                         .HasMaxLength(3)
@@ -970,8 +2425,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Resultado")
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal?>("TasaCambioEstimada")
                         .HasPrecision(18, 4)
@@ -982,6 +2436,8 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasIndex("ComprobanteDocId");
 
                     b.HasIndex("ConvocatoriaId");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("ProyectoId");
 
@@ -996,11 +2452,25 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Codigo")
-                        .IsRequired()
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
 
                     b.Property<int>("EstadoId")
                         .HasColumnType("int");
@@ -1015,13 +2485,12 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Moneda")
-                        .IsRequired()
                         .HasMaxLength(3)
                         .IsUnicode(false)
                         .HasColumnType("char(3)")
                         .IsFixedLength();
 
-                    b.Property<decimal>("PorcentajeAvance")
+                    b.Property<decimal?>("PorcentajeAvance")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
@@ -1037,8 +2506,7 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Resumen")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("TasaCambio")
                         .HasPrecision(18, 4)
@@ -1050,13 +2518,15 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(300)");
+                        .HasColumnType("nvarchar(300)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Codigo")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Codigo] IS NOT NULL");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("EstadoId");
 
@@ -1066,7 +2536,224 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TipoProyectoId");
 
-                    b.ToTable("Proyectos", (string)null);
+                    b.ToTable("Proyectos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Proyectos_PorcentajeAvance", "[PorcentajeAvance] BETWEEN 0 AND 100");
+                        });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoAliado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AliadoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CartaCompromisoDocId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RolAliado")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AliadoId");
+
+                    b.HasIndex("CartaCompromisoDocId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.ToTable("ProyectoAliados", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoAntecedente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Anio")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ConvocatoriaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EstadoBanco")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("NombreConvocatoria")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Puntaje")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<string>("Resultado")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConvocatoriaId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.ToTable("ProyectoAntecedentes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoCierre", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActaComiteDocId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConceptoComite")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("FechaPazYSalvo")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaRadicacion")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("InformeFinancieroDocId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InformeTecnicoDocId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PazYSalvoDocId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActaComiteDocId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("InformeFinancieroDocId");
+
+                    b.HasIndex("InformeTecnicoDocId");
+
+                    b.HasIndex("PazYSalvoDocId");
+
+                    b.HasIndex("ProyectoId")
+                        .IsUnique();
+
+                    b.ToTable("ProyectoCierres", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoGrupo", b =>
+                {
+                    b.Property<int>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GrupoId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProyectoId", "GrupoId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("GrupoId");
+
+                    b.ToTable("ProyectoGrupos", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoIntegrante", b =>
@@ -1076,6 +2763,22 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
 
                     b.Property<DateOnly?>("FechaFin")
                         .HasColumnType("date");
@@ -1089,19 +2792,88 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("RolEnProyecto")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("ProyectoId");
 
-                    b.HasIndex("UsuarioId", "ProyectoId");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("ProyectoIntegrantes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoProducto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("DocumentoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateOnly?>("FechaCompromiso")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("PropiedadIntelectualId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PublicacionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TipoProducto")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocumentoId");
+
+                    b.HasIndex("PropiedadIntelectualId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.HasIndex("PublicacionId");
+
+                    b.ToTable("ProyectoProductos", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoRevision", b =>
@@ -1112,30 +2884,43 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Decision")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int?>("EstadoAnteriorId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EstadoNuevoId")
+                    b.Property<int>("EstadoNuevoId")
                         .HasColumnType("int");
 
                     b.Property<string>("Etapa")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Observaciones")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ProyectoId")
                         .HasColumnType("int");
@@ -1144,6 +2929,8 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("EstadoAnteriorId");
 
@@ -1156,6 +2943,109 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.ToTable("ProyectoRevisiones", (string)null);
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Publicacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Anio")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Doi")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("EsIndexada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Revista")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("TipoPublicacionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.HasIndex("TipoPublicacionId");
+
+                    b.ToTable("Publicaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PublicacionAutor", b =>
+                {
+                    b.Property<int>("PublicacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Orden")
+                        .HasColumnType("int");
+
+                    b.HasKey("PublicacionId", "UsuarioId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("PublicacionAutores", (string)null);
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -1164,13 +3054,28 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("ExpiraEn")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("IpOrigen")
                         .HasMaxLength(45)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(45)");
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<DateTime?>("RevocadoEn")
                         .HasColumnType("datetime2");
@@ -1178,13 +3083,14 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("TokenHash")
                         .IsUnique();
@@ -1192,6 +3098,65 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ReporteGenerado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocumentoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Formato")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<int>("GeneradoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Periodo")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocumentoId");
+
+                    b.HasIndex("GeneradoPorId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.ToTable("ReportesGenerados", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Rol", b =>
@@ -1202,18 +3167,34 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("Nombre")
                         .IsUnique();
@@ -1224,33 +3205,243 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Configura el sistema y gestiona usuarios y roles",
-                            Nombre = "Administrador"
+                            Nombre = "Admin"
                         },
                         new
                         {
                             Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Director del Centro",
                             Nombre = "Director"
                         },
                         new
                         {
                             Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Coordinador de programa",
                             Nombre = "Coordinador"
                         },
                         new
                         {
                             Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Investigador / Investigador principal",
                             Nombre = "Investigador"
                         },
                         new
                         {
                             Id = 5,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Representante de un aliado",
                             Nombre = "Externo"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Descripcion = "Estudiante (educación continua, semilleros, trabajos de grado)",
+                            Nombre = "Estudiante"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Descripcion = "Docente de educación continua",
+                            Nombre = "Docente"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Descripcion = "Responsable de logística de eventos",
+                            Nombre = "Logistica"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Descripcion = "Registro de visitas y apoyo administrativo",
+                            Nombre = "Secretaria"
                         });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Semillero", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CoordinadorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoordinadorId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.ToTable("Semilleros", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.SemilleroIntegrante", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AprobadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EstadoAprobacion")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateOnly?>("FechaIngreso")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaSalida")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SemilleroId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoIntegranteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AprobadoPorId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.HasIndex("SemilleroId");
+
+                    b.HasIndex("TipoIntegranteId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("SemilleroIntegrantes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Sustentacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActaDocumentoId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Concepto")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FechaHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Lugar")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Modalidad")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<int>("TrabajoGradoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActaDocumentoId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("TrabajoGradoId");
+
+                    b.ToTable("Sustentaciones", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoAliado", b =>
@@ -1261,13 +3452,30 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("TiposAliado", (string)null);
 
@@ -1275,32 +3483,37 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Universidad"
                         },
                         new
                         {
                             Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Empresa"
                         },
                         new
                         {
                             Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Entidad pública"
                         },
                         new
                         {
                             Id = 4,
-                            Nombre = "ONG / Fundación"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Cámara de Comercio"
                         },
                         new
                         {
                             Id = 5,
-                            Nombre = "Organismo internacional"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Nombre = "Gremio / Clúster"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "ONG"
                         });
                 });
 
@@ -1312,13 +3525,30 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("TiposConvocatoria", (string)null);
 
@@ -1326,31 +3556,43 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            Nombre = "Interna (VIP UCaldas)"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Interna"
                         },
                         new
                         {
                             Id = 2,
-                            Nombre = "Externa nacional"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Nacional"
                         },
                         new
                         {
                             Id = 3,
-                            Nombre = "Externa internacional"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Internacional"
                         },
                         new
                         {
                             Id = 4,
-                            Nombre = "Minciencias – Fondo FJC"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Minciencias FJC"
                         },
                         new
                         {
                             Id = 5,
-                            Nombre = "Minciencias – SGR (Fondo CTeI)"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "SGR"
                         },
                         new
                         {
                             Id = 6,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Conjunta"
                         });
                 });
@@ -1363,13 +3605,30 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("nvarchar(80)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("TiposDocumento", (string)null);
 
@@ -1377,67 +3636,242 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            Nombre = "Propuesta técnica"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Acta"
                         },
                         new
                         {
                             Id = 2,
-                            Nombre = "Presupuesto"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nombre = "Acto administrativo de aprobación"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Nombre = "Carta de compromiso"
-                        },
-                        new
-                        {
-                            Id = 5,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Plan de trabajo"
                         },
                         new
                         {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Doc. Conceptual MGA"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Informe final"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Hoja de vida"
+                        },
+                        new
+                        {
                             Id = 6,
-                            Nombre = "Términos de referencia"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Propuesta técnica"
                         },
                         new
                         {
                             Id = 7,
-                            Nombre = "Comprobante de radicación"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Presupuesto"
                         },
                         new
                         {
                             Id = 8,
-                            Nombre = "Documento conceptual MGA"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Acto administrativo de aprobación"
                         },
                         new
                         {
                             Id = 9,
-                            Nombre = "Informe técnico"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Carta de compromiso"
                         },
                         new
                         {
                             Id = 10,
-                            Nombre = "Informe financiero"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Términos de referencia"
                         },
                         new
                         {
                             Id = 11,
-                            Nombre = "Acta de comité"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Comprobante de radicación"
                         },
                         new
                         {
                             Id = 12,
-                            Nombre = "Paz y salvo"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Informe técnico"
                         },
                         new
                         {
                             Id = 13,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Informe financiero"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Paz y salvo"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Otro"
+                        });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoEvento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DuracionMinutosDefecto")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.ToTable("TiposEvento", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Congreso"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Seminario"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Taller"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Innovación en Órbita"
+                        });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoFormacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.ToTable("TiposFormacion", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Diplomado"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Curso"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Microcertificación"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Taller"
                         });
                 });
 
@@ -1449,13 +3883,30 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("TiposHito", (string)null);
 
@@ -1463,37 +3914,110 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Entregable"
                         },
                         new
                         {
                             Id = 2,
-                            Nombre = "Informe de avance"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Informe"
                         },
                         new
                         {
                             Id = 3,
-                            Nombre = "Informe final"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Reunión"
                         },
                         new
                         {
                             Id = 4,
-                            Nombre = "Reunión técnica"
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Pago"
                         },
                         new
                         {
                             Id = 5,
-                            Nombre = "Desembolso / pago"
-                        },
-                        new
-                        {
-                            Id = 6,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
                             Nombre = "Sprint"
                         },
                         new
                         {
-                            Id = 7,
-                            Nombre = "Entrega de MVP"
+                            Id = 6,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "MVP"
+                        });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoIntegranteSemillero", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.ToTable("TiposIntegranteSemillero", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Estudiante"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Docente"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Egresado"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Joven investigador"
                         });
                 });
 
@@ -1505,16 +4029,35 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(60)");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<bool>("RequiereHitosFijos")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.ToTable("TiposProyecto", (string)null);
 
@@ -1522,39 +4065,258 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            Nombre = "Investigación básica",
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "I+D+i",
                             RequiereHitosFijos = false
                         },
                         new
                         {
                             Id = 2,
-                            Nombre = "Investigación aplicada",
-                            RequiereHitosFijos = false
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Reto Empresarial",
+                            RequiereHitosFijos = true
                         },
                         new
                         {
                             Id = 3,
-                            Nombre = "Desarrollo tecnológico",
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Consultoría",
                             RequiereHitosFijos = false
                         },
                         new
                         {
                             Id = 4,
-                            Nombre = "Innovación",
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Tesis",
                             RequiereHitosFijos = false
+                        });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoPublicacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.ToTable("TiposPublicacion", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Q1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Q2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Q3"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Q4"
                         },
                         new
                         {
                             Id = 5,
-                            Nombre = "Reto empresarial",
-                            RequiereHitosFijos = true
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Libro"
                         },
                         new
                         {
                             Id = 6,
-                            Nombre = "Consultoría / servicio",
-                            RequiereHitosFijos = false
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Capítulo"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Ponencia"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Activo = true,
+                            CreadoEn = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Nombre = "Tesis"
                         });
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TrabajoGrado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CodirectorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConceptoFinal")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DirectorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<int>("EstudianteId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PropuestaDocId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodirectorId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DirectorId");
+
+                    b.HasIndex("EstudianteId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.HasIndex("PropuestaDocId");
+
+                    b.HasIndex("ProyectoId");
+
+                    b.ToTable("TrabajosGrado", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TrabajoGradoJurado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Concepto")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RolJurado")
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<int>("TrabajoGradoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("TrabajoGradoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("TrabajoGradoJurados", (string)null);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Usuario", b =>
@@ -1565,83 +4327,94 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("AliadoId")
                         .HasColumnType("int");
 
                     b.Property<string>("Apellidos")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Cargo")
                         .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("CvLacUrl")
                         .HasMaxLength(300)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(300)");
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Dependencia")
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("ExpoPushToken")
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Nombres")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NumeroDocumento")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Orcid")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Telefono")
                         .HasMaxLength(30)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<bool>("TieneAcceso")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("TipoDocumento")
                         .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AliadoId");
 
+                    b.HasIndex("CreadoPorId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Usuarios_PasswordSiTieneAcceso", "[TieneAcceso] = 0 OR [PasswordHash] IS NOT NULL");
+                        });
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.UsuarioRol", b =>
@@ -1652,22 +4425,157 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Property<int>("RolId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
                     b.HasKey("UsuarioId", "RolId");
+
+                    b.HasIndex("CreadoPorId");
 
                     b.HasIndex("RolId");
 
                     b.ToTable("UsuarioRoles", (string)null);
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Visita", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Cargo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Celular")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long>("ConsentimientoId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Correo")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Dependencia")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("FechaHoraEntrada")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaHoraSalida")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Identificacion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int?>("MinutosPermanencia")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MotivoVisita")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("NombreCompleto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("RegistradaPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsentimientoId");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("FechaHoraEntrada");
+
+                    b.HasIndex("RegistradaPorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Visitas", (string)null);
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Aliado", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.TipoAliado", "TipoAliado")
                         .WithMany()
                         .HasForeignKey("TipoAliadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("TipoAliado");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Asistencia", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Inscripcion", "Inscripcion")
+                        .WithMany()
+                        .HasForeignKey("InscripcionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.FormacionSesion", "Sesion")
+                        .WithMany()
+                        .HasForeignKey("SesionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Inscripcion");
+
+                    b.Navigation("Sesion");
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Avance", b =>
@@ -1675,18 +4583,23 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Autor")
                         .WithMany()
                         .HasForeignKey("AutorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Hito", "Hito")
                         .WithMany()
                         .HasForeignKey("HitoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Autor");
@@ -1701,8 +4614,13 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Avance", "Avance")
                         .WithMany()
                         .HasForeignKey("AvanceId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Avance");
                 });
@@ -1712,13 +4630,18 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Avance", "Avance")
                         .WithMany()
                         .HasForeignKey("AvanceId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Validador")
                         .WithMany()
                         .HasForeignKey("ValidadorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Avance");
@@ -1726,18 +4649,64 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("Validador");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Calificacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Inscripcion", "Inscripcion")
+                        .WithMany()
+                        .HasForeignKey("InscripcionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Inscripcion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Certificado", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "FirmaCoordinador")
+                        .WithMany()
+                        .HasForeignKey("FirmaCoordinadorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "FirmaDirector")
+                        .WithMany()
+                        .HasForeignKey("FirmaDirectorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Inscripcion", "Inscripcion")
+                        .WithMany()
+                        .HasForeignKey("InscripcionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("FirmaCoordinador");
+
+                    b.Navigation("FirmaDirector");
+
+                    b.Navigation("Inscripcion");
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ConsentimientoDatos", b =>
                 {
                     b.HasOne("Ci2dt2.Domain.Entities.PoliticaTratamientoDatos", "Politica")
                         .WithMany()
                         .HasForeignKey("PoliticaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Politica");
 
@@ -1746,15 +4715,20 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Convocatoria", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Aliado", "EntidadConvocante")
                         .WithMany()
                         .HasForeignKey("EntidadConvocanteId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.TipoConvocatoria", "TipoConvocatoria")
                         .WithMany()
                         .HasForeignKey("TipoConvocatoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("EntidadConvocante");
@@ -1764,26 +4738,50 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Cronograma", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Evento", "Evento")
+                        .WithMany()
+                        .HasForeignKey("EventoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Formacion", "Formacion")
+                        .WithMany()
+                        .HasForeignKey("FormacionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Evento");
+
+                    b.Navigation("Formacion");
 
                     b.Navigation("Proyecto");
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Documento", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "SubidoPor")
                         .WithMany()
                         .HasForeignKey("SubidoPorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.TipoDocumento", "TipoDocumento")
                         .WithMany()
                         .HasForeignKey("TipoDocumentoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("SubidoPor");
@@ -1791,17 +4789,225 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("TipoDocumento");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.DocumentoFirma", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "Documento")
+                        .WithMany()
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Firmante")
+                        .WithMany()
+                        .HasForeignKey("FirmanteId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Documento");
+
+                    b.Navigation("Firmante");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.EstadoProyecto", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Evento", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Modalidad", "Modalidad")
+                        .WithMany()
+                        .HasForeignKey("ModalidadId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "ResponsableLogistica")
+                        .WithMany()
+                        .HasForeignKey("ResponsableLogisticaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TipoEvento", "TipoEvento")
+                        .WithMany()
+                        .HasForeignKey("TipoEventoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Modalidad");
+
+                    b.Navigation("Programa");
+
+                    b.Navigation("ResponsableLogistica");
+
+                    b.Navigation("TipoEvento");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.EventoAsistente", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Aliado", "Aliado")
+                        .WithMany()
+                        .HasForeignKey("AliadoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.ConsentimientoDatos", "Consentimiento")
+                        .WithMany()
+                        .HasForeignKey("ConsentimientoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Evento", "Evento")
+                        .WithMany()
+                        .HasForeignKey("EventoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Aliado");
+
+                    b.Navigation("Consentimiento");
+
+                    b.Navigation("Evento");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Formacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "AutorizadaPor")
+                        .WithMany()
+                        .HasForeignKey("AutorizadaPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Modalidad", "Modalidad")
+                        .WithMany()
+                        .HasForeignKey("ModalidadId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TipoFormacion", "TipoFormacion")
+                        .WithMany()
+                        .HasForeignKey("TipoFormacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AutorizadaPor");
+
+                    b.Navigation("Modalidad");
+
+                    b.Navigation("Programa");
+
+                    b.Navigation("TipoFormacion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FormacionDocente", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Docente")
+                        .WithMany()
+                        .HasForeignKey("DocenteId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Formacion", "Formacion")
+                        .WithMany()
+                        .HasForeignKey("FormacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Docente");
+
+                    b.Navigation("Formacion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FormacionSesion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Docente")
+                        .WithMany()
+                        .HasForeignKey("DocenteId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Formacion", "Formacion")
+                        .WithMany()
+                        .HasForeignKey("FormacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Docente");
+
+                    b.Navigation("Formacion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.FuenteConocimiento", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "Documento")
+                        .WithMany()
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Documento");
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.FuenteFinanciamiento", b =>
                 {
                     b.HasOne("Ci2dt2.Domain.Entities.Aliado", "Aliado")
                         .WithMany()
                         .HasForeignKey("AliadoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Aliado");
@@ -1809,23 +5015,44 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("Proyecto");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.GrupoInvestigacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Programa");
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Hito", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Cronograma", "Cronograma")
                         .WithMany()
                         .HasForeignKey("CronogramaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Responsable")
                         .WithMany()
                         .HasForeignKey("ResponsableId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.TipoHito", "TipoHito")
                         .WithMany()
                         .HasForeignKey("TipoHitoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Cronograma");
@@ -1835,22 +5062,104 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("TipoHito");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Indicador", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Programa");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.IndicadorMedicion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Indicador", "Indicador")
+                        .WithMany()
+                        .HasForeignKey("IndicadorId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Indicador");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Inscripcion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.ConsentimientoDatos", "Consentimiento")
+                        .WithMany()
+                        .HasForeignKey("ConsentimientoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Formacion", "Formacion")
+                        .WithMany()
+                        .HasForeignKey("FormacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "SoportePagoDoc")
+                        .WithMany()
+                        .HasForeignKey("SoportePagoDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Consentimiento");
+
+                    b.Navigation("Formacion");
+
+                    b.Navigation("SoportePagoDoc");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.LogActividad", b =>
                 {
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Modalidad", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Notificacion", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Usuario");
@@ -1858,13 +5167,50 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ObjetivoEspecifico", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
                         .WithMany()
                         .HasForeignKey("ProgramaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Programa");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PoliticaTratamientoDatos", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PreferenciaNotificacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Programa", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ProgramaAliado", b =>
@@ -1872,13 +5218,18 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Aliado", "Aliado")
                         .WithMany()
                         .HasForeignKey("AliadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
                         .WithMany()
                         .HasForeignKey("ProgramaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Aliado");
@@ -1888,19 +5239,63 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.ProgramaIntegrante", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
                         .WithMany()
                         .HasForeignKey("ProgramaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Programa");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PropiedadIntelectual", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PropiedadIntelectualAutor", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.PropiedadIntelectual", "PropiedadIntelectual")
+                        .WithMany()
+                        .HasForeignKey("PropiedadIntelectualId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("PropiedadIntelectual");
 
                     b.Navigation("Usuario");
                 });
@@ -1910,18 +5305,23 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Documento", "ComprobanteDoc")
                         .WithMany()
                         .HasForeignKey("ComprobanteDocId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Convocatoria", "Convocatoria")
                         .WithMany()
                         .HasForeignKey("ConvocatoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("ComprobanteDoc");
@@ -1933,28 +5333,33 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Proyecto", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.EstadoProyecto", "Estado")
                         .WithMany()
                         .HasForeignKey("EstadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "InvestigadorPrincipal")
                         .WithMany()
                         .HasForeignKey("InvestigadorPrincipalId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
                         .WithMany()
                         .HasForeignKey("ProgramaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.TipoProyecto", "TipoProyecto")
                         .WithMany()
                         .HasForeignKey("TipoProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Estado");
@@ -1966,18 +5371,145 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("TipoProyecto");
                 });
 
-            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoIntegrante", b =>
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoAliado", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Aliado", "Aliado")
+                        .WithMany()
+                        .HasForeignKey("AliadoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "CartaCompromisoDoc")
+                        .WithMany()
+                        .HasForeignKey("CartaCompromisoDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Aliado");
+
+                    b.Navigation("CartaCompromisoDoc");
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoAntecedente", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Convocatoria", "Convocatoria")
+                        .WithMany()
+                        .HasForeignKey("ConvocatoriaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Convocatoria");
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoCierre", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "ActaComiteDoc")
+                        .WithMany()
+                        .HasForeignKey("ActaComiteDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "InformeFinancieroDoc")
+                        .WithMany()
+                        .HasForeignKey("InformeFinancieroDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "InformeTecnicoDoc")
+                        .WithMany()
+                        .HasForeignKey("InformeTecnicoDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "PazYSalvoDoc")
+                        .WithMany()
+                        .HasForeignKey("PazYSalvoDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ActaComiteDoc");
+
+                    b.Navigation("InformeFinancieroDoc");
+
+                    b.Navigation("InformeTecnicoDoc");
+
+                    b.Navigation("PazYSalvoDoc");
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoGrupo", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.GrupoInvestigacion", "Grupo")
+                        .WithMany()
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Grupo");
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoIntegrante", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Proyecto");
@@ -1985,28 +5517,71 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoRevision", b =>
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoProducto", b =>
                 {
-                    b.HasOne("Ci2dt2.Domain.Entities.EstadoProyecto", "EstadoAnterior")
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
                         .WithMany()
-                        .HasForeignKey("EstadoAnteriorId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Ci2dt2.Domain.Entities.EstadoProyecto", "EstadoNuevo")
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "Documento")
                         .WithMany()
-                        .HasForeignKey("EstadoNuevoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.PropiedadIntelectual", "PropiedadIntelectual")
+                        .WithMany()
+                        .HasForeignKey("PropiedadIntelectualId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
                         .WithMany()
                         .HasForeignKey("ProyectoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Publicacion", "Publicacion")
+                        .WithMany()
+                        .HasForeignKey("PublicacionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Documento");
+
+                    b.Navigation("PropiedadIntelectual");
+
+                    b.Navigation("Proyecto");
+
+                    b.Navigation("Publicacion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ProyectoRevision", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.EstadoProyecto", "EstadoAnterior")
+                        .WithMany()
+                        .HasForeignKey("EstadoAnteriorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.EstadoProyecto", "EstadoNuevo")
+                        .WithMany()
+                        .HasForeignKey("EstadoNuevoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Revisor")
                         .WithMany()
                         .HasForeignKey("RevisorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("EstadoAnterior");
@@ -2018,13 +5593,349 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("Revisor");
                 });
 
-            modelBuilder.Entity("Ci2dt2.Domain.Entities.RefreshToken", b =>
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Publicacion", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TipoPublicacion", "TipoPublicacion")
+                        .WithMany()
+                        .HasForeignKey("TipoPublicacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Programa");
+
+                    b.Navigation("Proyecto");
+
+                    b.Navigation("TipoPublicacion");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.PublicacionAutor", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Publicacion", "Publicacion")
+                        .WithMany()
+                        .HasForeignKey("PublicacionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Publicacion");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.ReporteGenerado", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "Documento")
+                        .WithMany()
+                        .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "GeneradoPor")
+                        .WithMany()
+                        .HasForeignKey("GeneradoPorId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Documento");
+
+                    b.Navigation("GeneradoPor");
+
+                    b.Navigation("Programa");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Rol", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Semillero", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Coordinador")
+                        .WithMany()
+                        .HasForeignKey("CoordinadorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Coordinador");
+
+                    b.Navigation("Programa");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.SemilleroIntegrante", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "AprobadoPor")
+                        .WithMany()
+                        .HasForeignKey("AprobadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Semillero", "Semillero")
+                        .WithMany()
+                        .HasForeignKey("SemilleroId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TipoIntegranteSemillero", "TipoIntegrante")
+                        .WithMany()
+                        .HasForeignKey("TipoIntegranteId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AprobadoPor");
+
+                    b.Navigation("Proyecto");
+
+                    b.Navigation("Semillero");
+
+                    b.Navigation("TipoIntegrante");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Sustentacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "ActaDocumento")
+                        .WithMany()
+                        .HasForeignKey("ActaDocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TrabajoGrado", "TrabajoGrado")
+                        .WithMany()
+                        .HasForeignKey("TrabajoGradoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ActaDocumento");
+
+                    b.Navigation("TrabajoGrado");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoAliado", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoConvocatoria", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoDocumento", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoEvento", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoFormacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoHito", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoIntegranteSemillero", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoProyecto", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TipoPublicacion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TrabajoGrado", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Codirector")
+                        .WithMany()
+                        .HasForeignKey("CodirectorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Director")
+                        .WithMany()
+                        .HasForeignKey("DirectorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("EstudianteId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "PropuestaDoc")
+                        .WithMany()
+                        .HasForeignKey("PropuestaDocId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Proyecto", "Proyecto")
+                        .WithMany()
+                        .HasForeignKey("ProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Codirector");
+
+                    b.Navigation("Director");
+
+                    b.Navigation("Estudiante");
+
+                    b.Navigation("Programa");
+
+                    b.Navigation("PropuestaDoc");
+
+                    b.Navigation("Proyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.TrabajoGradoJurado", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.TrabajoGrado", "TrabajoGrado")
+                        .WithMany()
+                        .HasForeignKey("TrabajoGradoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("TrabajoGrado");
 
                     b.Navigation("Usuario");
                 });
@@ -2034,26 +5945,66 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.HasOne("Ci2dt2.Domain.Entities.Aliado", "Aliado")
                         .WithMany()
                         .HasForeignKey("AliadoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Aliado");
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.UsuarioRol", b =>
                 {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Ci2dt2.Domain.Entities.Rol", "Rol")
                         .WithMany()
                         .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
                         .WithMany("Roles")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Rol");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.Visita", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.ConsentimientoDatos", "Consentimiento")
+                        .WithMany()
+                        .HasForeignKey("ConsentimientoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "RegistradaPor")
+                        .WithMany()
+                        .HasForeignKey("RegistradaPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Consentimiento");
+
+                    b.Navigation("RegistradaPor");
 
                     b.Navigation("Usuario");
                 });

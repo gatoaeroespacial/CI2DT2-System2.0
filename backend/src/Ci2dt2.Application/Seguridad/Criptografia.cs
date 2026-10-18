@@ -14,10 +14,4 @@ public static class Criptografia
 
     public static string Sha256Hex(string valor) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(valor)));
-
-    /// <summary>
-    /// Sello del PasswordHash actual: invalida los enlaces de contraseña una vez que
-    /// la contraseña cambia (enlace de un solo uso).
-    /// </summary>
-    public static string SelloContrasena(string? passwordHash) => Sha256Hex(passwordHash ?? "")[..16];
 }

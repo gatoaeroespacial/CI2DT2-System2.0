@@ -1,13 +1,13 @@
 namespace Ci2dt2.Domain.Entities;
 
-// M11 Entorno Empresarial
-public class TipoAliado
+// M11 Entorno empresarial
+public class TipoAliado : EntidadAuditable
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
 }
 
-public class Aliado
+public class Aliado : EntidadAuditable
 {
     public int Id { get; set; }
     public int TipoAliadoId { get; set; }
@@ -17,12 +17,12 @@ public class Aliado
     public string? Ciudad { get; set; }
     public string? Sector { get; set; }
     public string? RepresentanteLegal { get; set; }
-    public string? Email { get; set; }
+    public string Email { get; set; } = "";
 
     public TipoAliado? TipoAliado { get; set; }
 }
 
-public class ProgramaAliado
+public class ProgramaAliado : EntidadAuditable
 {
     public int ProgramaId { get; set; }
     public int AliadoId { get; set; }

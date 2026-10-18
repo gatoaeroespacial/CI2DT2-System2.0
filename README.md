@@ -28,8 +28,8 @@ npm run dev --prefix frontend
   migraciones sobre la base `Ci2dt2Dev` de LocalDB y crea el Administrador inicial de desarrollo
   (credenciales en `backend/src/Ci2dt2.Api/appsettings.Development.json`).
 - Frontend en `http://localhost:3000`. Las rutas `/api/v1/*` se reenvían a la API (`API_URL`).
-- Sin SMTP configurado, los correos (p. ej. el de bienvenida con el enlace para definir la contraseña)
-  se escriben en el log de la API.
+- El Administrador asigna la contraseña inicial al crear cada usuario (HU-04). Manual de uso y pruebas
+  por rol en [docs/guia-rapida.md](docs/guia-rapida.md); datos de prueba en `backend/scripts/seed-pruebas.sql`.
 
 ## Pruebas
 

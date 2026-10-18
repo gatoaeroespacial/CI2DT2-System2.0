@@ -82,21 +82,19 @@ internal sealed class IdentityPasswordHasher : Application.Seguridad.IPasswordHa
         _hasher.VerifyHashedPassword(Usuario, hash, password) != PasswordVerificationResult.Failed;
 }
 
-/// <summary>Enlaces firmados con la Data Protection API (propósito + sello del PasswordHash).</summary>
-internal sealed class EnlaceContrasenaService(IDataProtectionProvider proveedor) : IEnlaceContrasenaService
+/// <summary>URL firmada y temporal para descargar un documento (HU-21), con la Data Protection API.</summary>
+internal sealed class EnlaceDescargaService(IDataProtectionProvider proveedor) : IEnlaceDescarga
 {
     private readonly ITimeLimitedDataProtector _protector =
-        proveedor.CreateProtector("Ci2dt2.Contrasena.Reset").ToTimeLimitedDataProtector();
+        proveedor.CreateProtector("Ci2dt2.Documentos.Descarga").ToTimeLimitedDataProtector();
 
-    public string Generar(int usuarioId, string sello, TimeSpan vigencia) =>
-        _protector.Protect($"{usuarioId}:{sello}", vigencia);
+    public string Generar(int documentoId, TimeSpan vigencia) => _protector.Protect(documentoId.ToString(), vigencia);
 
-    public (int UsuarioId, string Sello)? Validar(string token)
+    public int? Validar(string token)
     {
         try
         {
-            var partes = _protector.Unprotect(token).Split(':');
-            return partes.Length == 2 && int.TryParse(partes[0], out var id) ? (id, partes[1]) : null;
+            return int.TryParse(_protector.Unprotect(token), out var id) ? id : null;
         }
         catch (System.Security.Cryptography.CryptographicException)
         {

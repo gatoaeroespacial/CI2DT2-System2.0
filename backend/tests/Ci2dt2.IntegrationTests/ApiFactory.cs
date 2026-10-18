@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -61,7 +62,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Jwt:Clave", "clave-de-pruebas-de-integracion-0123456789abcdef");
         builder.UseSetting("AdminInicial:Email", AdminEmail);
         builder.UseSetting("AdminInicial:Password", AdminPassword);
-        builder.UseSetting("Frontend:Url", "http://frontend.test");
+        builder.UseSetting("Archivos:Ruta", Path.Combine(Path.GetTempPath(), $"ci2dt2-pruebas-{Guid.NewGuid():N}"));
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<IEmailSender>();
@@ -89,6 +90,21 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     }
 
     public T Servicio<T>(IServiceScope scope) where T : notnull => scope.ServiceProvider.GetRequiredService<T>();
+
+    /// <summary>
+    /// La auditoría se escribe de forma asíncrona (HU-28): espera hasta que existan al menos
+    /// <paramref name="cantidad"/> registros que cumplan el filtro.
+    /// </summary>
+    public async Task<List<LogActividad>> EsperarLogsAsync(Expression<Func<LogActividad, bool>> filtro, int cantidad = 1)
+    {
+        for (var intento = 0; ; intento++)
+        {
+            var registros = await EnBaseDatosAsync(db => db.LogActividades.Where(filtro).OrderBy(l => l.Id).ToListAsync());
+            if (registros.Count >= cantidad || intento >= 50)
+                return registros;
+            await Task.Delay(100);
+        }
+    }
 
     /// <summary>Crea directamente en la base de datos un usuario con contraseña y roles.</summary>
     public Task<Usuario> CrearUsuarioAsync(string email, bool tieneAcceso = true, int? aliadoId = null, params string[] roles) =>

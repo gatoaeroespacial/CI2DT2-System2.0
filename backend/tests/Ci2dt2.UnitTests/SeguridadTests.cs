@@ -1,4 +1,5 @@
 using Ci2dt2.Application.Seguridad;
+using Ci2dt2.Application.Usuarios;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Ci2dt2.UnitTests;
@@ -78,18 +79,11 @@ public class CriptografiaTests
         Assert.Equal(64, Criptografia.Sha256Hex(a).Length);
         Assert.Equal(Criptografia.Sha256Hex(a), Criptografia.Sha256Hex(a));
     }
-
-    [Fact]
-    public void El_sello_cambia_cuando_cambia_la_contrasena()
-    {
-        Assert.NotEqual(Criptografia.SelloContrasena(null), Criptografia.SelloContrasena("hash-nuevo"));
-        Assert.Equal(Criptografia.SelloContrasena("x"), Criptografia.SelloContrasena("x"));
-    }
 }
 
 public class PoliticaContrasenaTests
 {
-    private readonly DefinirContrasenaRequestValidator _validador = new();
+    private readonly AsignarContrasenaRequestValidator _validador = new();
 
     [Theory]
     [InlineData("Corta1A")]          // menos de 10 caracteres
@@ -98,17 +92,17 @@ public class PoliticaContrasenaTests
     [InlineData("SinNumeroAqui")]
     [InlineData("")]
     public void Rechaza_contrasenas_que_no_cumplen_la_politica(string contrasena) =>
-        Assert.False(_validador.Validate(new DefinirContrasenaRequest("token", contrasena)).IsValid);
+        Assert.False(_validador.Validate(new AsignarContrasenaRequest(contrasena)).IsValid);
 
     [Fact]
     public void Acepta_una_contrasena_valida() =>
-        Assert.True(_validador.Validate(new DefinirContrasenaRequest("token", "Valida12345")).IsValid);
+        Assert.True(_validador.Validate(new AsignarContrasenaRequest("Valida12345")).IsValid);
 }
 
 /// <summary>Verifica la matriz de permisos contra el Anexo A del backlog (celda por celda).</summary>
 public class MatrizPermisosTests
 {
-    private const string A = "Administrador", D = "Director", C = "Coordinador", I = "Investigador", E = "Externo";
+    private const string A = "Admin", D = "Director", C = "Coordinador", I = "Investigador", E = "Externo";
 
     public static TheoryData<string, string[]> AnexoA => new()
     {

@@ -12,15 +12,6 @@ public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
     }
 }
 
-public sealed class DefinirContrasenaRequestValidator : AbstractValidator<DefinirContrasenaRequest>
-{
-    public DefinirContrasenaRequestValidator()
-    {
-        RuleFor(x => x.Token).NotEmpty().WithMessage("El enlace no es válido.");
-        RuleFor(x => x.NuevaContrasena).CumplePoliticaContrasena();
-    }
-}
-
 public static class PoliticaContrasena
 {
     public const int LongitudMinima = 10;

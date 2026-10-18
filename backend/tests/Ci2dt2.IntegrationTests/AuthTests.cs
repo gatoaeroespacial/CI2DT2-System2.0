@@ -112,9 +112,7 @@ public class AuthTests(ApiFactory api)
         await api.LoginAsync(email, "Incorrecta123");
         await api.LoginAsync(email, ApiFactory.PasswordPrueba);
 
-        var registros = await api.EnBaseDatosAsync(db => db.LogActividades
-            .Where(l => l.Recurso == "Auth" && l.Accion == "LOGIN" && l.UsuarioId == usuario.Id)
-            .OrderBy(l => l.Id).ToListAsync());
+        var registros = await api.EsperarLogsAsync(l => l.Recurso == "Auth" && l.Accion == "LOGIN" && l.UsuarioId == usuario.Id, 2);
         Assert.Equal([401, 200], registros.Select(r => r.EstadoHttp));
         Assert.All(registros, r =>
         {

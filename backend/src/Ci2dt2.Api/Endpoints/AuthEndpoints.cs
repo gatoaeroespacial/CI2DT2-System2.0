@@ -5,7 +5,7 @@ namespace Ci2dt2.Api.Endpoints;
 
 public sealed record RespuestaSesion(string AccessToken, DateTime ExpiraEn, UsuarioSesion Usuario);
 
-/// <summary>HU-01 y HU-02: inicio de sesión, renovación, cierre de sesión y definición de contraseña.</summary>
+/// <summary>HU-01 y HU-02: inicio de sesión, renovación y cierre de sesión.</summary>
 public sealed class AuthEndpoints : IEndpointModule
 {
     /// <summary>Cookie HttpOnly con el token de refresco; solo viaja a las rutas de autenticación.</summary>
@@ -32,12 +32,6 @@ public sealed class AuthEndpoints : IEndpointModule
         grupo.MapPost("/logout", CerrarSesion)
             .WithSummary("Cierra la sesión y revoca el token de refresco actual")
             .Produces(StatusCodes.Status204NoContent);
-
-        grupo.MapPost("/reset-password", DefinirContrasena)
-            .Validar<DefinirContrasenaRequest>()
-            .WithSummary("Define la contraseña con el enlace enviado por correo")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
     }
 
     private static async Task<IResult> Login(LoginRequest request, AuthService auth, HttpContext http, CancellationToken ct)
@@ -81,12 +75,6 @@ public sealed class AuthEndpoints : IEndpointModule
     {
         await auth.CerrarSesionAsync(http.Request.Cookies[CookieRefresco], ct);
         BorrarCookie(http);
-        return Results.NoContent();
-    }
-
-    private static async Task<IResult> DefinirContrasena(DefinirContrasenaRequest request, AuthService auth, CancellationToken ct)
-    {
-        await auth.DefinirContrasenaAsync(request, ct);
         return Results.NoContent();
     }
 

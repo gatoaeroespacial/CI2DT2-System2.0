@@ -1,27 +1,17 @@
-using System.Net;
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Seguridad;
 using Ci2dt2.Domain;
 using Ci2dt2.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Ci2dt2.Application.Usuarios;
 
-/// <summary>Comandos de administración de usuarios y roles (HU-04).</summary>
-public sealed class UsuariosService(
-    IApplicationDbContext db,
-    AuthService auth,
-    IEnlaceContrasenaService enlaces,
-    IEmailSender email,
-    IOptions<OpcionesFrontend> frontend,
-    Auditoria auditoria,
-    ILogger<UsuariosService> logger)
+/// <summary>
+/// Comandos de administración de usuarios y roles (HU-04). La auditoría de cada cambio la
+/// registra el middleware de HU-28 con los valores anteriores y nuevos (sin el hash).
+/// </summary>
+public sealed class UsuariosService(IApplicationDbContext db, AuthService auth, IPasswordHasher hasher)
 {
-    public const string Recurso = "Usuarios";
-    public static readonly TimeSpan VigenciaEnlaceBienvenida = TimeSpan.FromHours(72);
-
     public async Task<UsuarioDetalle> ObtenerAsync(int id, CancellationToken ct = default)
     {
         var usuario = await CargarAsync(id, ct);
@@ -35,17 +25,13 @@ public sealed class UsuariosService(
         await ValidarAliadoAsync(request.AliadoId, ct);
 
         var roles = await db.Roles.Where(r => request.Roles.Contains(r.Nombre)).ToListAsync(ct);
-        var usuario = new Usuario { TieneAcceso = true };
+        // El Administrador define la contraseña inicial; nunca se muestra ni se envía por correo.
+        var usuario = new Usuario { TieneAcceso = true, PasswordHash = hasher.Hash(request.Contrasena) };
         Aplicar(usuario, request, emailNormalizado);
         usuario.Roles = roles.Select(r => new UsuarioRol { Rol = r }).ToList();
 
         db.Usuarios.Add(usuario);
         await db.SaveChangesAsync(ct);
-
-        auditoria.Registrar(Recurso, "POST", usuario.Id.ToString(), 201, valoresNuevos: Instantanea(usuario));
-        await db.SaveChangesAsync(ct);
-
-        await EnviarBienvenidaAsync(usuario, ct);
         return ADetalle(usuario);
     }
 
@@ -58,9 +44,7 @@ public sealed class UsuariosService(
         if (request.AliadoId is null && TieneRol(usuario, Roles.Externo))
             throw new ReglaNegocioException("Un usuario Externo debe estar asociado a un aliado.");
 
-        var anterior = Instantanea(usuario);
         Aplicar(usuario, request, emailNormalizado);
-        auditoria.Registrar(Recurso, "PUT", id.ToString(), 200, anterior, Instantanea(usuario));
         await db.SaveChangesAsync(ct);
         return ADetalle(usuario);
     }
@@ -71,10 +55,10 @@ public sealed class UsuariosService(
         var usuario = await CargarAsync(id, ct);
         if (!tieneAcceso && id == actorId)
             throw new ReglaNegocioException("No puede desactivar su propia cuenta.");
+        if (tieneAcceso && usuario.PasswordHash is null)
+            throw new ReglaNegocioException("El usuario no tiene contraseña: asígnele una antes de activarlo.");
 
-        var anterior = Instantanea(usuario);
         usuario.TieneAcceso = tieneAcceso;
-        auditoria.Registrar(Recurso, "PATCH", id.ToString(), 200, anterior, Instantanea(usuario));
         await db.SaveChangesAsync(ct);
 
         if (!tieneAcceso)
@@ -97,7 +81,6 @@ public sealed class UsuariosService(
         if (roles.Contains(Roles.Externo) && usuario.AliadoId is null)
             throw new ReglaNegocioException("Un usuario Externo debe estar asociado a un aliado.");
 
-        var anterior = Instantanea(usuario);
         var nuevos = await db.Roles.Where(r => roles.Contains(r.Nombre)).ToListAsync(ct);
         foreach (var quitado in usuario.Roles.Where(ur => nuevos.All(r => r.Id != ur.RolId)).ToList())
         {
@@ -107,9 +90,17 @@ public sealed class UsuariosService(
         foreach (var rol in nuevos.Where(r => usuario.Roles.All(ur => ur.RolId != r.Id)))
             usuario.Roles.Add(new UsuarioRol { UsuarioId = id, RolId = rol.Id, Rol = rol });
 
-        auditoria.Registrar(Recurso, "PUT", id.ToString(), 200, anterior, Instantanea(usuario));
         await db.SaveChangesAsync(ct);
         return ADetalle(usuario);
+    }
+
+    /// <summary>Asigna una nueva contraseña y revoca todas las sesiones activas del usuario (HU-04 CA-6).</summary>
+    public async Task AsignarContrasenaAsync(int id, string contrasena, CancellationToken ct = default)
+    {
+        var usuario = await CargarAsync(id, ct);
+        usuario.PasswordHash = hasher.Hash(contrasena);
+        await db.SaveChangesAsync(ct);
+        await auth.RevocarTodosAsync(id, ct);
     }
 
     private async Task<Usuario> CargarAsync(int id, CancellationToken ct) =>
@@ -125,29 +116,8 @@ public sealed class UsuariosService(
 
     private async Task ValidarAliadoAsync(int? aliadoId, CancellationToken ct)
     {
-        if (aliadoId is not null && !await db.Aliados.AnyAsync(a => a.Id == aliadoId, ct))
+        if (aliadoId is not null && !await db.Aliados.AnyAsync(a => a.Id == aliadoId && a.Activo, ct))
             throw new ReglaNegocioException("El aliado seleccionado no existe.");
-    }
-
-    private async Task EnviarBienvenidaAsync(Usuario usuario, CancellationToken ct)
-    {
-        try
-        {
-            var token = enlaces.Generar(usuario.Id, Criptografia.SelloContrasena(usuario.PasswordHash), VigenciaEnlaceBienvenida);
-            var enlace = $"{frontend.Value.Url.TrimEnd('/')}/definir-contrasena?token={Uri.EscapeDataString(token)}";
-            var nombre = WebUtility.HtmlEncode(usuario.Nombres);
-            var cuerpo =
-                $"<p>Hola {nombre}:</p>" +
-                "<p>Se creó su cuenta en la plataforma del CI²DT² de la Universidad de Caldas.</p>" +
-                $"<p>Para definir su contraseña ingrese al siguiente enlace (válido durante 72 horas):</p>" +
-                $"<p><a href=\"{enlace}\">Definir mi contraseña</a></p>";
-            await email.EnviarAsync(usuario.Email, "Bienvenido a la plataforma CI²DT²", cuerpo, ct);
-        }
-        catch (Exception ex)
-        {
-            // La creación del usuario no se revierte si falla el envío del correo.
-            logger.LogError(ex, "No se pudo enviar el correo de bienvenida al usuario {UsuarioId}", usuario.Id);
-        }
     }
 
     private static void Aplicar(Usuario usuario, IDatosUsuario datos, string emailNormalizado)
@@ -171,24 +141,6 @@ public sealed class UsuariosService(
 
     private static List<string> NombresRoles(Usuario usuario) =>
         usuario.Roles.Select(ur => ur.Rol!.Nombre).OrderBy(r => r).ToList();
-
-    /// <summary>Valores auditados del usuario: nunca incluye el hash de la contraseña ni tokens.</summary>
-    private static object Instantanea(Usuario u) => new
-    {
-        u.Nombres,
-        u.Apellidos,
-        u.TipoDocumento,
-        u.NumeroDocumento,
-        u.Email,
-        u.Telefono,
-        u.Cargo,
-        u.Dependencia,
-        u.CvLacUrl,
-        u.Orcid,
-        u.AliadoId,
-        u.TieneAcceso,
-        Roles = NombresRoles(u),
-    };
 
     private static UsuarioDetalle ADetalle(Usuario u) => new(
         u.Id, u.Nombres, u.Apellidos, u.TipoDocumento, u.NumeroDocumento, u.Email, u.Telefono,
