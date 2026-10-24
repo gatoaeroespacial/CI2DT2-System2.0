@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const menu = menuPara(usuario.roles);
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className={`flex ${ruta === "/asistente" ? "h-dvh overflow-hidden" : "min-h-screen"} flex-col md:flex-row`}>
       <aside className="border-b border-slate-200 bg-emerald-950 text-emerald-50 md:w-64 md:shrink-0 md:border-b-0">
         <div className="flex items-center justify-between px-5 py-4">
           <div>
@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className={`flex min-w-0 flex-1 flex-col ${ruta === "/asistente" ? "min-h-0" : ""}`}>
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-3">
           <p className="text-sm text-slate-500 first-letter:uppercase">{fechaLarga(new Date())}</p>
           <div className="flex items-center gap-4">
@@ -94,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Boton>
           </div>
         </header>
-        <main className="flex-1 px-4 py-6 md:px-8">
+        <main className={`flex-1 px-4 py-6 md:px-8 ${ruta === "/asistente" ? "flex min-h-0 flex-col overflow-hidden" : ""}`}>
           {autorizado ? children : <EstadoError mensaje="No tiene permisos para ver esta página." />}
         </main>
       </div>

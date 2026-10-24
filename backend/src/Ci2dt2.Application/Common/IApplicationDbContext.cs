@@ -6,6 +6,8 @@ namespace Ci2dt2.Application.Common;
 /// <summary>Acceso a datos para comandos (EF Core). Las consultas usan Dapper.</summary>
 public interface IApplicationDbContext
 {
+    IQueryable<TEntity> Query<TEntity>() where TEntity : class;
+
     DbSet<Rol> Roles { get; }
     DbSet<Usuario> Usuarios { get; }
     DbSet<UsuarioRol> UsuarioRoles { get; }

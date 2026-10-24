@@ -1,4 +1,5 @@
 using Ci2dt2.Application.Aliados;
+using Ci2dt2.Application.Asistente;
 using Ci2dt2.Application.Catalogos;
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Documentos;
@@ -22,6 +23,7 @@ public static class DependencyInjection
 
         services.AddScoped<Auditoria>();
         services.AddScoped<AccesoRecursos>();
+        services.AddScoped<AsistenteConsultas>();
         services.AddScoped<AuthService>();
         services.AddScoped<UsuariosService>();
         services.AddScoped<UsuariosQueries>();

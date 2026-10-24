@@ -19,6 +19,7 @@ export type ItemMenu = { href: string; etiqueta: string; roles: Rol[] };
  * la autorización real se valida en el backend en cada petición.
  */
 export const MENU: ItemMenu[] = [
+  { href: "/asistente", etiqueta: "Asistente IA", roles: [Administrador, Director] },
   { href: "/tablero-centro", etiqueta: "Tablero del centro", roles: [Administrador, Director] },
   { href: "/proyectos", etiqueta: "Proyectos", roles: [Administrador, Director, Coordinador, Investigador] },
   { href: "/programas", etiqueta: "Programas", roles: [Administrador, Director, Coordinador] },

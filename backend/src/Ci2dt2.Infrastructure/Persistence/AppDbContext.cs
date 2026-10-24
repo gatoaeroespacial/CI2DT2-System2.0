@@ -7,6 +7,8 @@ namespace Ci2dt2.Infrastructure.Persistence;
 /// <summary>Modelo v3 del diccionario de datos: 67 tablas en 15 módulos.</summary>
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IApplicationDbContext
 {
+    public IQueryable<TEntity> Query<TEntity>() where TEntity : class => Set<TEntity>();
+
     // M01 Seguridad y acceso
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();

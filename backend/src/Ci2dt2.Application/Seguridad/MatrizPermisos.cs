@@ -20,6 +20,7 @@ public static class Politicas
     public const string RevisarPropuestas = nameof(RevisarPropuestas);
     public const string AvalarAprobarProyectos = nameof(AvalarAprobarProyectos);
     public const string VerProyectos = nameof(VerProyectos);
+    public const string UsarAsistente = nameof(UsarAsistente);
     public const string GestionarHitos = nameof(GestionarHitos);
     public const string RegistrarAvances = nameof(RegistrarAvances);
     public const string ValidarAvances = nameof(ValidarAvances);
@@ -39,6 +40,7 @@ public static class Politicas
         [RevisarPropuestas] = [Director, Coordinador],
         [AvalarAprobarProyectos] = [Administrador, Director],
         [VerProyectos] = [Administrador, Director, Coordinador, Investigador],
+        [UsarAsistente] = [Administrador, Director],
         [GestionarHitos] = [Administrador, Director, Coordinador, Investigador],
         [RegistrarAvances] = [Administrador, Director, Coordinador, Investigador],
         [ValidarAvances] = [Director, Coordinador, Investigador],

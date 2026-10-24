@@ -13,6 +13,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
 
+DotNetEnv.Env.NoClobber().TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((contexto, servicios, log) => log

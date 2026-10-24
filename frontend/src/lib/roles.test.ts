@@ -9,7 +9,7 @@ describe("menú por rol (HU-05 CA-3)", () => {
   });
 
   it("el Administrador ve Usuarios y el Tablero del centro", () => {
-    expect(etiquetas(["Admin"])).toEqual(["Tablero del centro", "Proyectos", "Programas", "Aliados", "Usuarios", "Notificaciones"]);
+    expect(etiquetas(["Admin"])).toEqual(["Asistente IA", "Tablero del centro", "Proyectos", "Programas", "Aliados", "Usuarios", "Notificaciones"]);
   });
 
   it("el Externo solo ve sus notificaciones", () => {
@@ -17,7 +17,7 @@ describe("menú por rol (HU-05 CA-3)", () => {
   });
 
   it("con varios roles el menú es la unión (CA-4)", () => {
-    expect(etiquetas(["Investigador", "Director"])).toEqual(["Tablero del centro", "Proyectos", "Programas", "Aliados", "Notificaciones"]);
+    expect(etiquetas(["Investigador", "Director"])).toEqual(["Asistente IA", "Tablero del centro", "Proyectos", "Programas", "Aliados", "Notificaciones"]);
   });
 
   it("el Coordinador gestiona programas y aliados, pero no usuarios", () => {
@@ -27,6 +27,8 @@ describe("menú por rol (HU-05 CA-3)", () => {
   it("protege las subrutas con los roles de la opción del menú", () => {
     expect(rolesDeRuta("/usuarios/15")).toEqual(["Admin"]);
     expect(tieneAlgunRol(["Coordinador"], rolesDeRuta("/usuarios/nuevo")!)).toBe(false);
+    expect(rolesDeRuta("/asistente")).toEqual(["Admin", "Director"]);
+    expect(tieneAlgunRol(["Investigador"], rolesDeRuta("/asistente")!)).toBe(false);
     expect(rolesDeRuta("/login")).toBeUndefined();
   });
 });

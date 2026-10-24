@@ -1,5 +1,7 @@
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Seguridad;
+using Ci2dt2.Application.Asistente;
+using Ci2dt2.Infrastructure.Asistente;
 using Ci2dt2.Infrastructure.Archivos;
 using Ci2dt2.Infrastructure.Auditoria;
 using Ci2dt2.Infrastructure.Email;
@@ -26,6 +28,8 @@ public static class DependencyInjection
                 sp.GetRequiredService<CapturaCambios>()));
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+        services.AddHttpClient<IInterpretadorIntencionesAsistente, GeminiIntentInterpreter>(client =>
+            client.Timeout = TimeSpan.FromSeconds(20));
         services.AddScoped<InicializadorBaseDatos>();
 
         services.Configure<OpcionesJwt>(configuracion.GetSection(OpcionesJwt.Seccion));

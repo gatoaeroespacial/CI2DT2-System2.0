@@ -130,8 +130,8 @@ public class MatrizPermisosTests
         Assert.Equal(roles.Order(), Politicas.Matriz[politica].Order());
 
     [Fact]
-    public void La_matriz_tiene_las_16_acciones_del_anexo_A() =>
-        Assert.Equal(16, Politicas.Matriz.Count);
+    public void La_matriz_tiene_las_16_acciones_del_anexo_A_y_la_politica_del_asistente() =>
+        Assert.Equal(17, Politicas.Matriz.Count);
 
     [Fact]
     public void El_rol_Externo_solo_ve_sus_notificaciones() =>

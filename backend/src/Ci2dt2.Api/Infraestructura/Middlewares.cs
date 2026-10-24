@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Ci2dt2.Application.Common;
 using Ci2dt2.Application.Seguridad;
+using Ci2dt2.Infrastructure.Asistente;
 using Ci2dt2.Infrastructure.Seguridad;
 using Microsoft.AspNetCore.Diagnostics;
 
@@ -14,6 +15,8 @@ public sealed class ManejadorExcepciones(ILogger<ManejadorExcepciones> logger) :
         ReglaNegocioException e => (StatusCodes.Status422UnprocessableEntity, e.Message),
         NoEncontradoException e => (StatusCodes.Status404NotFound, e.Message),
         AccesoDenegadoException e => (StatusCodes.Status403Forbidden, e.Message),
+        AsistenteNoConfiguradoException or AsistenteProveedorException =>
+            (StatusCodes.Status503ServiceUnavailable, exception.Message),
         BadHttpRequestException => (StatusCodes.Status400BadRequest, "La solicitud no tiene un formato válido."),
         _ => (StatusCodes.Status500InternalServerError, "Ocurrió un error inesperado. Intente nuevamente."),
     };
@@ -44,6 +47,7 @@ public sealed class AuditoriaMiddleware(RequestDelegate next)
 
     // El inicio de sesión lo audita AuthService con el correo y el resultado (HU-28 CA-3).
     private const string RutaLogin = "/api/v1/auth/login";
+    private const string RutaConsultaAsistente = "/api/v1/asistente/consultas";
 
     public async Task InvokeAsync(HttpContext http, Auditoria auditoria, ICambiosPeticion cambios)
     {
@@ -67,7 +71,9 @@ public sealed class AuditoriaMiddleware(RequestDelegate next)
         if (!ruta.StartsWithSegments("/api") || ruta.StartsWithSegments(RutaLogin))
             return;
 
-        var esMutacion = Mutaciones.Contains(http.Request.Method);
+        // Esta petición usa POST para no exponer la consulta en la URL, pero no modifica datos.
+        var esMutacion = Mutaciones.Contains(http.Request.Method) &&
+            !ruta.StartsWithSegments(RutaConsultaAsistente);
         var esDenegado = estado == StatusCodes.Status403Forbidden && http.User.Identity?.IsAuthenticated == true;
         if (!esMutacion && !esDenegado)
             return;

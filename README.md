@@ -61,10 +61,10 @@ Dos ambientes: **Pruebas** (rama `develop`) y **Producción** (rama `main`). Los
     "Frontend": { "Url": "https://<dominio-frontend>" },
     "Cors": { "Origenes": [ "https://<dominio-frontend>" ] },
     "Smtp": { "Host": "...", "Puerto": 587, "UsarSsl": true, "Usuario": "...", "Contrasena": "...", "Remitente": "..." },
+    "Gemini": { "ApiKey": "<clave de Gemini>", "Modelo": "gemini-2.5-flash" },
     "DataProtection": { "RutaLlaves": "<carpeta persistente con permisos de escritura>" }
   }
-  ```
-
+  ``` 
 - **Frontend (Vercel)**: proyecto con *Root Directory* `frontend`, integración con GitHub (vista previa por
   pull request) y la variable `API_URL` por ambiente (URL HTTPS de la API).
 
