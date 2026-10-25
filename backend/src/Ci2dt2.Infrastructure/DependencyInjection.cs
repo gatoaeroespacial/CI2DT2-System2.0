@@ -28,7 +28,8 @@ public static class DependencyInjection
                 sp.GetRequiredService<CapturaCambios>()));
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
-        services.AddHttpClient<IInterpretadorIntencionesAsistente, GeminiIntentInterpreter>(client =>
+        services.AddScoped<IRecuperadorConocimientoAsistente, RecuperadorConocimientoAsistente>();
+        services.AddHttpClient<IGeneradorRespuestaAsistente, GeminiAnswerGenerator>(client =>
             client.Timeout = TimeSpan.FromSeconds(20));
         services.AddScoped<InicializadorBaseDatos>();
 

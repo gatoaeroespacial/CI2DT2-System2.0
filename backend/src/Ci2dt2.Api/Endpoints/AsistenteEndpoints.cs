@@ -4,7 +4,7 @@ using Ci2dt2.Application.Seguridad;
 
 namespace Ci2dt2.Api.Endpoints;
 
-/// <summary>Consultas de solo lectura sobre las entidades autorizadas para el usuario.</summary>
+/// <summary>Respuestas generadas con contexto recuperado del conocimiento autorizado del centro.</summary>
 public sealed class AsistenteEndpoints : IEndpointModule
 {
     public static void Map(IEndpointRouteBuilder app)
@@ -18,7 +18,7 @@ public sealed class AsistenteEndpoints : IEndpointModule
                 CancellationToken ct) =>
                 Results.Ok(await consultas.ConsultarAsync(request, http.User.UsuarioAutenticado(), ct)))
             .Validar<AsistenteRequest>()
-            .WithSummary("Consulta entidades autorizadas en lenguaje natural con alcance según el rol")
+            .WithSummary("Responde en lenguaje natural con recuperación de conocimiento según el rol")
             .RequireAuthorization(Politicas.UsarAsistente)
             .Produces<AsistenteRespuesta>()
             .Produces<ErrorApi>(StatusCodes.Status400BadRequest)

@@ -4,50 +4,27 @@ using Ci2dt2.Domain;
 
 namespace Ci2dt2.UnitTests;
 
-public class AsistentePromptTests
+public class AsistenteRagTests
 {
     [Fact]
-    public void El_prompt_no_expone_esquema_a_roles_sin_acceso_al_asistente()
-    {
-        var prompt = AsistenteConsultas.CrearInstrucciones([Roles.Investigador]);
-
-        Assert.DoesNotContain("- Proyectos:", prompt);
-        Assert.DoesNotContain("- Usuarios:", prompt);
-        Assert.Contains("Este rol no tiene acceso al asistente", prompt);
-    }
-
-    [Fact]
-    public void El_prompt_de_administrador_permite_consultar_el_centro_sin_ampliar_el_esquema()
+    public void El_prompt_orienta_al_asistente_a_responder_con_conocimiento_recuperado()
     {
         var prompt = AsistenteConsultas.CrearInstrucciones([Roles.Administrador]);
 
-        Assert.Contains("- Proyectos:", prompt);
-        Assert.Contains("- Indicadores:", prompt);
-        Assert.Contains("- Convocatorias:", prompt);
-        Assert.Contains("- Usuarios:", prompt);
-        Assert.Contains("Email", prompt);
-        Assert.Contains("- ProyectoIntegrantes:", prompt);
-        Assert.DoesNotContain("- RefreshTokens:", prompt);
-        Assert.DoesNotContain("PasswordHash", prompt);
-        Assert.DoesNotContain("TokenHash", prompt);
-        Assert.DoesNotContain("- LogActividades:", prompt);
+        Assert.Contains("referencias recuperadas", prompt);
+        Assert.Contains("no inventes cifras", prompt);
+        Assert.Contains("Nunca menciones tablas, columnas, esquemas, SQL", prompt);
+        Assert.Contains("Administrador", prompt);
     }
 
     [Fact]
-    public void El_prompt_indica_denegar_sin_reemplazar_la_consulta_por_otra_entidad()
+    public void El_prompt_del_director_prohibe_exponer_informacion_de_personas()
     {
         var prompt = AsistenteConsultas.CrearInstrucciones([Roles.Director]);
 
-        Assert.Contains("\"count|list|deny|respond\"", prompt);
-        Assert.Contains("Nunca reemplaces una solicitud denegada o no autorizada con una consulta sobre otra entidad", prompt);
-        Assert.Contains("Este JSON es interno", prompt);
-        Assert.Contains("Las respuestas visibles deben ser en español cotidiano", prompt);
-        Assert.Contains("estas consultas requieren permisos de Administrador", prompt);
-        Assert.DoesNotContain("- Usuarios:", prompt);
-        Assert.DoesNotContain("- ProgramaIntegrantes:", prompt);
-        Assert.DoesNotContain("- ProyectoIntegrantes:", prompt);
-        Assert.Contains("Usa \"respond\" para saludos, conversación general, preguntas explicativas", prompt);
-        Assert.Contains("explica brevemente cuando una pregunta quede fuera del alcance", prompt);
+        Assert.Contains("Director", prompt);
+        Assert.Contains("personas, usuarios, investigadores", prompt);
+        Assert.Contains("No contestes con otra información como sustituto", prompt);
     }
 
     [Fact]
@@ -73,10 +50,10 @@ public class AsistentePromptTests
     }
 
     [Fact]
-    public void La_solicitud_de_investigadores_se_deniega_sin_desviarse_para_director()
+    public void La_solicitud_de_datos_de_estudiantes_se_deniega_para_director()
     {
         var mensaje = AsistenteConsultas.DetectarSolicitudProtegida(
-            "Muéstrame la lista de investigadores",
+            "¿Quiénes son los estudiantes vinculados a los proyectos?",
             [Roles.Director]);
 
         Assert.NotNull(mensaje);
