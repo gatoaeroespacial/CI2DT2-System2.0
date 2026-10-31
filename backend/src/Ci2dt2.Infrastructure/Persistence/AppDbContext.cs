@@ -106,6 +106,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<LogActividad> LogActividades => Set<LogActividad>();
     public DbSet<FuenteConocimiento> FuentesConocimiento => Set<FuenteConocimiento>();
 
+    // Asistente de formulación de proyectos
+    public DbSet<BorradorProyecto> BorradoresProyecto => Set<BorradorProyecto>();
+    public DbSet<BorradorProyectoSeccion> BorradorProyectoSecciones => Set<BorradorProyectoSeccion>();
+    public DbSet<BorradorProyectoMensaje> BorradorProyectoMensajes => Set<BorradorProyectoMensaje>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Las cadenas son nvarchar por defecto (tildes y ñ); las columnas char(n) se marcan en cada configuración.

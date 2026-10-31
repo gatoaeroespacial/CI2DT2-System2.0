@@ -106,6 +106,12 @@ export default function Proyectos() {
   return (
     <>
       <Encabezado titulo="Proyectos">
+        <Link
+          href="/proyectos/asistente"
+          className="inline-flex items-center gap-1.5 rounded-md border border-emerald-700 bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors shadow-xs"
+        >
+          <span>✨ Asistente de Formulación IA</span>
+        </Link>
         <Link href="/proyectos/nuevo" className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900">
           Nueva propuesta
         </Link>

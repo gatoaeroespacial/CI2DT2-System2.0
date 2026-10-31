@@ -29,8 +29,12 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
         services.AddScoped<IRecuperadorConocimientoAsistente, RecuperadorConocimientoAsistente>();
+        services.AddSingleton<IDocumentParserService, DocumentParserService>();
+        services.AddScoped<IExportadorBorradorService, ExportadorBorradorDocxService>();
         services.AddHttpClient<IGeneradorRespuestaAsistente, GeminiAnswerGenerator>(client =>
             client.Timeout = TimeSpan.FromSeconds(20));
+        services.AddHttpClient<IAgenteFormulacionService, GeminiAgenteFormulacionService>(client =>
+            client.Timeout = TimeSpan.FromMinutes(2));
         services.AddScoped<InicializadorBaseDatos>();
 
         services.Configure<OpcionesJwt>(configuracion.GetSection(OpcionesJwt.Seccion));

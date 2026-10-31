@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ProgramasService>();
         services.AddScoped<ProyectosQueries>();
         services.AddScoped<ProyectosService>();
+        services.AddScoped<BorradorProyectosService>();
         services.AddScoped<DocumentosService>();
         return services;
     }

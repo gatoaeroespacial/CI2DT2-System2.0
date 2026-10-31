@@ -30,6 +30,9 @@ public interface IApplicationDbContext
     DbSet<Aliado> Aliados { get; }
     DbSet<ProgramaAliado> ProgramaAliados { get; }
     DbSet<LogActividad> LogActividades { get; }
+    DbSet<BorradorProyecto> BorradoresProyecto { get; }
+    DbSet<BorradorProyectoSeccion> BorradorProyectoSecciones { get; }
+    DbSet<BorradorProyectoMensaje> BorradorProyectoMensajes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

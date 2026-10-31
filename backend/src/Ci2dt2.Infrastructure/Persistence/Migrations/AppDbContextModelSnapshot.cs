@@ -333,6 +333,179 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.ToTable("AvanceValidaciones", (string)null);
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyecto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConvocatoriaMetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConvocatoriaNombre")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocumentoTdrId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EstadoAvance")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("LineaInvestigacion")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ProgramaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TituloTentativo")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("DocumentoTdrId");
+
+                    b.HasIndex("ProgramaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("BorradoresProyecto", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyectoMensaje", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("BorradorProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("MetadatosJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SeccionDestino")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TipoMensaje")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BorradorProyectoId");
+
+                    b.ToTable("BorradorProyectoMensajes", (string)null);
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyectoSeccion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BorradorProyectoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CodigoSeccion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ObservacionesIA")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TituloSeccion")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreadoPorId");
+
+                    b.HasIndex("BorradorProyectoId", "CodigoSeccion")
+                        .IsUnique();
+
+                    b.ToTable("BorradorProyectoSecciones", (string)null);
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Calificacion", b =>
                 {
                     b.Property<int>("Id")
@@ -4649,6 +4822,63 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("Validador");
                 });
 
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyecto", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Documento", "DocumentoTdr")
+                        .WithMany()
+                        .HasForeignKey("DocumentoTdrId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Programa", "Programa")
+                        .WithMany()
+                        .HasForeignKey("ProgramaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("DocumentoTdr");
+
+                    b.Navigation("Programa");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyectoMensaje", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.BorradorProyecto", "BorradorProyecto")
+                        .WithMany("Mensajes")
+                        .HasForeignKey("BorradorProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("BorradorProyecto");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyectoSeccion", b =>
+                {
+                    b.HasOne("Ci2dt2.Domain.Entities.BorradorProyecto", "BorradorProyecto")
+                        .WithMany("Secciones")
+                        .HasForeignKey("BorradorProyectoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CreadoPorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("BorradorProyecto");
+                });
+
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Calificacion", b =>
                 {
                     b.HasOne("Ci2dt2.Domain.Entities.Usuario", null)
@@ -6007,6 +6237,13 @@ namespace Ci2dt2.Infrastructure.Persistence.Migrations
                     b.Navigation("RegistradaPor");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Ci2dt2.Domain.Entities.BorradorProyecto", b =>
+                {
+                    b.Navigation("Mensajes");
+
+                    b.Navigation("Secciones");
                 });
 
             modelBuilder.Entity("Ci2dt2.Domain.Entities.Usuario", b =>
