@@ -7,6 +7,9 @@ const apiUrl = process.env.API_URL ?? "http://localhost:5132";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    agentUpgrade: "security",
+  },
   turbopack: {
     rules: {
       "*.css": {

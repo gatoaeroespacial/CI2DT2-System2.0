@@ -2,6 +2,7 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --font-institutional: var(--font-inter);
 }
 
 body {
