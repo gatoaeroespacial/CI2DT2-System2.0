@@ -36,9 +36,9 @@ jobs:
       - name: Lint (dotnet format)
         run: dotnet format --verify-no-changes --no-restore
       - name: Pruebas unitarias
-        run: dotnet test tests/Ci2dt2.UnitTests --no-build -c Release
+        run: dotnet test tests/Ci2dt2.UnitTests -c Release --no-restore
       - name: Pruebas de integración (SQL Server)
-        run: dotnet test tests/Ci2dt2.IntegrationTests --no-build -c Release
+        run: dotnet test tests/Ci2dt2.IntegrationTests -c Release --no-restore
         env:
           CI2DT2_TEST_SQL: Server=localhost,1433;User Id=sa;Password=Ci2dt2-Pruebas-2026;TrustServerCertificate=True
 
