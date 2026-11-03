@@ -12,11 +12,11 @@ public class EsquemaTests(ApiFactory api)
         api.EnBaseDatosAsync(db => db.Database.SqlQueryRaw<int>(sql).SingleAsync());
 
     [Fact]
-    public async Task Crea_las_67_tablas_con_125_llaves_del_modelo_mas_las_de_auditoria()
+    public async Task Crea_las_70_tablas_con_130_llaves_del_modelo_mas_las_de_auditoria()
     {
-        Assert.Equal(67, await EscalarAsync("SELECT COUNT(*) AS Value FROM sys.tables WHERE name <> '__EFMigrationsHistory'"));
-        // 125 llaves del modelo + 64 CreadoPorId (todas las tablas menos las 3 inmutables).
-        Assert.Equal(125 + 64, await EscalarAsync("SELECT COUNT(*) AS Value FROM sys.foreign_keys"));
+        Assert.Equal(70, await EscalarAsync("SELECT COUNT(*) AS Value FROM sys.tables WHERE name <> '__EFMigrationsHistory'"));
+        // 130 llaves del modelo + 66 CreadoPorId (todas las tablas menos las 3 inmutables).
+        Assert.Equal(130 + 66, await EscalarAsync("SELECT COUNT(*) AS Value FROM sys.foreign_keys"));
         Assert.Equal(0, await EscalarAsync("SELECT COUNT(*) AS Value FROM sys.foreign_keys WHERE delete_referential_action <> 0"));
     }
 
@@ -25,7 +25,7 @@ public class EsquemaTests(ApiFactory api)
     {
         Assert.Equal(0, await EscalarAsync(
             "SELECT COUNT(*) AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE DATA_TYPE IN ('varchar', 'text', 'ntext')"));
-        Assert.Equal(64, await EscalarAsync(
+        Assert.Equal(66, await EscalarAsync(
             "SELECT COUNT(*) AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'Activo'"));
         Assert.Equal(0, await EscalarAsync(
             "SELECT COUNT(*) AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME = 'CreadoEn' " +
