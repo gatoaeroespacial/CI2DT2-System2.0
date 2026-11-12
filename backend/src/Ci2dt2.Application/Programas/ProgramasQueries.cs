@@ -65,4 +65,22 @@ public sealed class ProgramasQueries(IDbConnectionFactory conexiones)
         using var conexion = conexiones.Crear();
         return (await conexion.QueryAsync<IntegranteProgramaItem>(new CommandDefinition(sql, new { programaId }, cancellationToken: ct))).ToList();
     }
+
+    /// <summary>
+    /// Usuarios con adscripción vigente al programa y acceso al sistema: candidatos a Investigador
+    /// Principal de una propuesta del programa (HU-08, P1.1).
+    /// </summary>
+    public async Task<IReadOnlyList<Usuarios.UsuarioOpcion>> AdscritosAsync(int programaId, CancellationToken ct = default)
+    {
+        var sql = $"""
+            SELECT u.Id, u.Nombres + ' ' + u.Apellidos AS Nombre, u.Email
+            FROM Usuarios u
+            WHERE u.Activo = 1 AND u.TieneAcceso = 1
+              AND EXISTS (SELECT 1 FROM ProgramaIntegrantes pi
+                          WHERE pi.UsuarioId = u.Id AND pi.ProgramaId = @programaId AND pi.Activo = 1 AND {Vigente})
+            ORDER BY u.Apellidos, u.Nombres
+            """;
+        using var conexion = conexiones.Crear();
+        return (await conexion.QueryAsync<Usuarios.UsuarioOpcion>(new CommandDefinition(sql, new { programaId }, cancellationToken: ct))).ToList();
+    }
 }

@@ -275,3 +275,17 @@ export function validarArchivo(nombre: string, tamano: number): string | null {
   if (tamano === 0) return "El archivo está vacío.";
   return null;
 }
+
+// ----- Avances (HU-19) -----
+
+export const FORMATOS_ADJUNTO = [".pdf", ".docx", ".xlsx", ".csv", ".jpg", ".jpeg", ".png"];
+export const TAMANO_MAXIMO_ADJUNTO = 20 * 1024 * 1024;
+export const MAX_ADJUNTOS = 5;
+
+export function validarAdjunto(nombre: string, tamano: number): string | null {
+  const extension = nombre.slice(nombre.lastIndexOf(".")).toLowerCase();
+  if (!FORMATOS_ADJUNTO.includes(extension)) return "Formato no permitido. Use PDF, DOCX, XLSX, CSV, JPG o PNG.";
+  if (tamano > TAMANO_MAXIMO_ADJUNTO) return "El archivo supera el tamaño máximo de 20 MB.";
+  if (tamano === 0) return "El archivo está vacío.";
+  return null;
+}

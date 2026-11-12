@@ -5,11 +5,13 @@ const etiquetas = (roles: string[]) => menuPara(roles).map((i) => i.etiqueta);
 
 describe("menú por rol (HU-05 CA-3)", () => {
   it("el Investigador no ve Usuarios ni el Tablero del centro", () => {
-    expect(etiquetas(["Investigador"])).toEqual(["Proyectos", "Notificaciones"]);
+    expect(etiquetas(["Investigador"])).toEqual(["Proyectos", "Convocatorias", "Avances por validar", "Mis alertas", "Notificaciones"]);
   });
 
   it("el Administrador ve Usuarios y el Tablero del centro", () => {
-    expect(etiquetas(["Admin"])).toEqual(["Asistente IA", "Tablero del centro", "Proyectos", "Programas", "Aliados", "Usuarios", "Notificaciones"]);
+    expect(etiquetas(["Admin"])).toEqual([
+      "Asistente IA", "Tablero del centro", "Proyectos", "Convocatorias", "Mis alertas", "Programas", "Aliados", "Usuarios", "Notificaciones",
+    ]);
   });
 
   it("el Externo solo ve sus notificaciones", () => {
@@ -17,11 +19,15 @@ describe("menú por rol (HU-05 CA-3)", () => {
   });
 
   it("con varios roles el menú es la unión (CA-4)", () => {
-    expect(etiquetas(["Investigador", "Director"])).toEqual(["Asistente IA", "Tablero del centro", "Proyectos", "Programas", "Aliados", "Notificaciones"]);
+    expect(etiquetas(["Investigador", "Director"])).toEqual([
+      "Asistente IA", "Tablero del centro", "Proyectos", "Convocatorias", "Avances por validar", "Mis alertas", "Programas", "Aliados", "Notificaciones",
+    ]);
   });
 
   it("el Coordinador gestiona programas y aliados, pero no usuarios", () => {
-    expect(etiquetas(["Coordinador"])).toEqual(["Proyectos", "Programas", "Aliados", "Notificaciones"]);
+    expect(etiquetas(["Coordinador"])).toEqual([
+      "Proyectos", "Convocatorias", "Avances por validar", "Mis alertas", "Programas", "Aliados", "Notificaciones",
+    ]);
   });
 
   it("protege las subrutas con los roles de la opción del menú", () => {
@@ -30,6 +36,8 @@ describe("menú por rol (HU-05 CA-3)", () => {
     expect(rolesDeRuta("/asistente")).toEqual(["Admin", "Director"]);
     expect(tieneAlgunRol(["Investigador"], rolesDeRuta("/asistente")!)).toBe(false);
     expect(rolesDeRuta("/login")).toBeUndefined();
+    // El Administrador no valida avances (Anexo A).
+    expect(tieneAlgunRol(["Admin"], rolesDeRuta("/avances-por-validar")!)).toBe(false);
   });
 });
 

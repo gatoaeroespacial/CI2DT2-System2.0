@@ -117,6 +117,16 @@ app.MapModulos();
 using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<InicializadorBaseDatos>().InicializarAsync();
 
+// HU-14: carga inicial desde la plantilla CSV, ejecutada por el equipo (sin pantalla):
+//   dotnet run --project backend/src/Ci2dt2.Api -- plantilla > plantilla.csv
+//   dotnet run --project backend/src/Ci2dt2.Api -- importar archivo.csv              (solo valida)
+//   dotnet run --project backend/src/Ci2dt2.Api -- importar archivo.csv --confirmar  (importa)
+if (args.Length > 0 && args[0] is "importar" or "plantilla")
+{
+    Environment.ExitCode = await ConsolaImportacion.EjecutarAsync(app.Services, args);
+    return;
+}
+
 app.Run();
 
 public partial class Program;

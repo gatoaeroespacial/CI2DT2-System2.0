@@ -82,23 +82,53 @@ internal sealed class IdentityPasswordHasher : Application.Seguridad.IPasswordHa
         _hasher.VerifyHashedPassword(Usuario, hash, password) != PasswordVerificationResult.Failed;
 }
 
-/// <summary>URL firmada y temporal para descargar un documento (HU-21), con la Data Protection API.</summary>
+/// <summary>URL firmada y temporal para descargar un documento o adjunto (HU-21, HU-19), con la Data Protection API.</summary>
 internal sealed class EnlaceDescargaService(IDataProtectionProvider proveedor) : IEnlaceDescarga
 {
-    private readonly ITimeLimitedDataProtector _protector =
-        proveedor.CreateProtector("Ci2dt2.Documentos.Descarga").ToTimeLimitedDataProtector();
+    private ITimeLimitedDataProtector Protector(string recurso) =>
+        // Se conserva el propósito original de los documentos para no invalidar enlaces vigentes.
+        proveedor.CreateProtector(recurso == RecursosDescarga.Documento
+            ? "Ci2dt2.Documentos.Descarga"
+            : $"Ci2dt2.Descarga.{recurso}").ToTimeLimitedDataProtector();
 
-    public string Generar(int documentoId, TimeSpan vigencia) => _protector.Protect(documentoId.ToString(), vigencia);
+    public string Generar(int id, TimeSpan vigencia, string recurso = RecursosDescarga.Documento) =>
+        Protector(recurso).Protect(id.ToString(), vigencia);
 
-    public int? Validar(string token)
+    public int? Validar(string token, string recurso = RecursosDescarga.Documento)
     {
         try
         {
-            return int.TryParse(_protector.Unprotect(token), out var id) ? id : null;
+            return int.TryParse(Protector(recurso).Unprotect(token), out var id) ? id : null;
         }
         catch (System.Security.Cryptography.CryptographicException)
         {
             return null;
         }
     }
+}
+
+/// <summary>Token de restablecimiento de contraseña (HU-03): "id|sello" protegido y con vencimiento.</summary>
+internal sealed class TokenRestablecimientoService(IDataProtectionProvider proveedor) : ITokenRestablecimiento
+{
+    private readonly ITimeLimitedDataProtector _protector =
+        proveedor.CreateProtector("Ci2dt2.Contrasena.Restablecer").ToTimeLimitedDataProtector();
+
+    public string Generar(int usuarioId, string passwordHash, TimeSpan vigencia) =>
+        _protector.Protect($"{usuarioId}|{Sello(passwordHash)}", vigencia);
+
+    public (int UsuarioId, string Sello)? Leer(string token)
+    {
+        try
+        {
+            var partes = _protector.Unprotect(token).Split('|');
+            return partes.Length == 2 && int.TryParse(partes[0], out var id) ? (id, partes[1]) : null;
+        }
+        catch (System.Security.Cryptography.CryptographicException)
+        {
+            return null;
+        }
+    }
+
+    // Huella corta del hash vigente: al cambiar la contraseña el token deja de coincidir (un solo uso).
+    public string Sello(string passwordHash) => Criptografia.Sha256Hex(passwordHash)[..16];
 }

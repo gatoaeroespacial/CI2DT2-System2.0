@@ -19,10 +19,17 @@ public interface IApplicationDbContext
     DbSet<EstadoProyecto> EstadosProyecto { get; }
     DbSet<TipoProyecto> TiposProyecto { get; }
     DbSet<ProyectoIntegrante> ProyectoIntegrantes { get; }
+    DbSet<ProyectoRevision> ProyectoRevisiones { get; }
     DbSet<FuenteFinanciamiento> FuentesFinanciamiento { get; }
     DbSet<PropuestaConvocatoria> PropuestasConvocatoria { get; }
     DbSet<Convocatoria> Convocatorias { get; }
+    DbSet<TipoConvocatoria> TiposConvocatoria { get; }
+    DbSet<Cronograma> Cronogramas { get; }
+    DbSet<TipoHito> TiposHito { get; }
+    DbSet<Hito> Hitos { get; }
     DbSet<Avance> Avances { get; }
+    DbSet<AvanceAdjunto> AvancesAdjuntos { get; }
+    DbSet<AvanceValidacion> AvanceValidaciones { get; }
     DbSet<TipoDocumento> TiposDocumento { get; }
     DbSet<Documento> Documentos { get; }
     DbSet<Notificacion> Notificaciones { get; }
@@ -30,6 +37,8 @@ public interface IApplicationDbContext
     DbSet<Aliado> Aliados { get; }
     DbSet<ProgramaAliado> ProgramaAliados { get; }
     DbSet<LogActividad> LogActividades { get; }
+    DbSet<PoliticaTratamientoDatos> PoliticasTratamientoDatos { get; }
+    DbSet<ConsentimientoDatos> ConsentimientosDatos { get; }
     DbSet<BorradorProyecto> BorradoresProyecto { get; }
     DbSet<BorradorProyectoSeccion> BorradorProyectoSecciones { get; }
     DbSet<BorradorProyectoMensaje> BorradorProyectoMensajes { get; }

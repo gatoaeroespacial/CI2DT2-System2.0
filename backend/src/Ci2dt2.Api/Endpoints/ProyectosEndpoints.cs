@@ -1,7 +1,11 @@
 using Ci2dt2.Api.Infraestructura;
+using Ci2dt2.Application.Avances;
 using Ci2dt2.Application.Common;
+using Ci2dt2.Application.Convocatorias;
+using Ci2dt2.Application.Cronogramas;
 using Ci2dt2.Application.Proyectos;
 using Ci2dt2.Application.Seguridad;
+using Ci2dt2.Domain;
 
 namespace Ci2dt2.Api.Endpoints;
 
@@ -22,7 +26,7 @@ public sealed class ConsultaProyectos
         programaId ?? ProgramaId, EstadoId, TipoProyectoId, Anio, InvestigadorPrincipalId, Busqueda, Orden, Desc ?? false, Pagina ?? 1);
 }
 
-public sealed record FichaProyecto(ProyectoDetalle Proyecto, PermisosProyecto Permisos);
+public sealed record FichaProyecto(ProyectoDetalle Proyecto, PermisosProyecto Permisos, FlujoProyecto Flujo);
 
 /// <summary>HU-08 (registro), HU-09 (equipo), HU-10 (financiación) y HU-13 (consulta).</summary>
 public sealed class ProyectosEndpoints : IEndpointModule
@@ -59,14 +63,14 @@ public sealed class ProyectosEndpoints : IEndpointModule
             .RequireAuthorization(Politicas.VerProyectos)
             .Produces<Pagina<ProyectoListadoItem>>();
 
-        grupo.MapGet("/{id:int}", async (int id, ProyectosQueries consultas, ProyectosService servicio,
+        grupo.MapGet("/{id:int}", async (int id, ProyectosQueries consultas, ProyectosService servicio, FlujoProyectoService flujo,
                 AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
             {
                 var usuario = http.User.UsuarioAutenticado();
                 // HU-05 CA-2: si no puede verlo responde 404 para no revelar su existencia.
                 if (!await acceso.PuedeVerProyectoAsync(usuario, id, ct) || await consultas.ObtenerAsync(id, ct) is not { } detalle)
                     return Results.NotFound(new ErrorApi("El proyecto no existe."));
-                return Results.Ok(new FichaProyecto(detalle, await servicio.PermisosAsync(id, usuario, ct)));
+                return Results.Ok(new FichaProyecto(detalle, await servicio.PermisosAsync(id, usuario, ct), await flujo.FlujoAsync(id, usuario, ct)));
             })
             .WithSummary("Ficha del proyecto: general, convocatorias, cronograma, avances y revisiones")
             .RequireAuthorization(Politicas.VerProyectos)
@@ -167,5 +171,134 @@ public sealed class ProyectosEndpoints : IEndpointModule
             .WithSummary("Elimina una fuente de financiamiento (borrado lógico)")
             .RequireAuthorization(Politicas.EditarPropuestas)
             .Produces(StatusCodes.Status204NoContent);
+
+        // ----- HU-11: envío a revisión y aval -----
+        grupo.MapPost("/{id:int}/enviar-revision", async (int id, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.EnviarRevisionAsync(id, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .WithSummary("El IP envía la propuesta a revisión (etapa Coordinador) si cumple los requisitos")
+            .RequireAuthorization(Politicas.EditarPropuestas)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapPost("/{id:int}/revisiones", async (int id, RevisionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.RevisarAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<RevisionRequest>()
+            .WithSummary("Decisión de revisión: Aprueba o Devuelve (Coordinador), Avala o Devuelve (Director)")
+            .RequireAuthorization(p => p.RequireRole(Roles.Administrador, Roles.Director, Roles.Coordinador))
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        // ----- HU-12: aprobación e inicio de ejecución -----
+        grupo.MapPost("/{id:int}/aprobacion", async (int id, AprobacionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.RegistrarAprobacionAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<AprobacionRequest>()
+            .WithSummary("Registra el resultado de la postulación: Aprobado (con acto administrativo) o No aprobado")
+            .RequireAuthorization(Politicas.AvalarAprobarProyectos)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapPost("/{id:int}/iniciar-ejecucion", async (int id, IniciarEjecucionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.IniciarEjecucionAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<IniciarEjecucionRequest>()
+            .WithSummary("Pasa el proyecto aprobado a En ejecución con la fecha de inicio y el plan de trabajo")
+            .RequireAuthorization(Politicas.AvalarAprobarProyectos)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        // ----- HU-16: postulaciones -----
+        grupo.MapGet("/{id:int}/postulaciones", async (int id, PostulacionesService servicio, AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
+                await acceso.PuedeVerProyectoAsync(http.User.UsuarioAutenticado(), id, ct)
+                    ? Results.Ok(await servicio.ListarAsync(id, ct))
+                    : Results.NotFound(new ErrorApi("El proyecto no existe.")))
+            .WithSummary("Postulaciones del proyecto a convocatorias")
+            .RequireAuthorization(Politicas.VerProyectos)
+            .Produces<IReadOnlyList<PostulacionDetalle>>();
+
+        grupo.MapPost("/{id:int}/postulaciones", async (int id, PostulacionRequest request, PostulacionesService servicio, HttpContext http, CancellationToken ct) =>
+            {
+                var postulacionId = await servicio.CrearAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.Created($"/api/v1/proyectos/{id}/postulaciones/{postulacionId}", new { id = postulacionId });
+            })
+            .Validar<PostulacionRequest>()
+            .WithSummary("Vincula la propuesta a una convocatoria")
+            .RequireAuthorization(Politicas.EditarPropuestas)
+            .Produces(StatusCodes.Status201Created)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapPut("/{id:int}/postulaciones/{postulacionId:int}", async (int id, int postulacionId, PostulacionRequest request,
+                PostulacionesService servicio, HttpContext http, CancellationToken ct) =>
+            {
+                await servicio.ActualizarAsync(id, postulacionId, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<PostulacionRequest>()
+            .WithSummary("Actualiza la radicación externa, la fase y el resultado de la postulación")
+            .RequireAuthorization(Politicas.EditarPropuestas)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapDelete("/{id:int}/postulaciones/{postulacionId:int}", async (int id, int postulacionId,
+                PostulacionesService servicio, HttpContext http, CancellationToken ct) =>
+            {
+                await servicio.EliminarAsync(id, postulacionId, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .WithSummary("Elimina una postulación (borrado lógico)")
+            .RequireAuthorization(Politicas.EditarPropuestas)
+            .Produces(StatusCodes.Status204NoContent);
+
+        // ----- HU-17: hitos -----
+        grupo.MapGet("/{id:int}/hitos", async (int id, HitosService servicio, AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
+                await acceso.PuedeVerProyectoAsync(http.User.UsuarioAutenticado(), id, ct)
+                    ? Results.Ok(await servicio.ListarAsync(id, ct))
+                    : Results.NotFound(new ErrorApi("El proyecto no existe.")))
+            .WithSummary("Hitos del cronograma ordenados por fecha límite")
+            .RequireAuthorization(Politicas.VerProyectos)
+            .Produces<IReadOnlyList<HitoDetalle>>();
+
+        grupo.MapPost("/{id:int}/hitos", async (int id, HitoRequest request, HitosService servicio, HttpContext http, CancellationToken ct) =>
+            {
+                var guardado = await servicio.CrearAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.Created($"/api/v1/hitos/{guardado.Id}", guardado);
+            })
+            .Validar<HitoRequest>()
+            .WithSummary("Agrega un hito con tipo, fecha límite, responsable y días de alerta")
+            .RequireAuthorization(Politicas.GestionarHitos)
+            .Produces<HitoGuardado>(StatusCodes.Status201Created)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        // ----- HU-19: avances -----
+        grupo.MapGet("/{id:int}/avances", async (int id, AvancesService servicio, AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
+                await acceso.PuedeVerProyectoAsync(http.User.UsuarioAutenticado(), id, ct)
+                    ? Results.Ok(await servicio.ListarAsync(id, ct))
+                    : Results.NotFound(new ErrorApi("El proyecto no existe.")))
+            .WithSummary("Avances del proyecto con adjuntos e historial de validaciones")
+            .RequireAuthorization(Politicas.VerProyectos)
+            .Produces<IReadOnlyList<AvanceDetalle>>();
+
+        grupo.MapPost("/{id:int}/avances", async (int id, AvanceRequest request, AvancesService servicio, HttpContext http, CancellationToken ct) =>
+            {
+                var guardado = await servicio.CrearAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return guardado.Existente
+                    ? Results.Ok(guardado)
+                    : Results.Created($"/api/v1/avances/{guardado.Id}", guardado);
+            })
+            .Validar<AvanceRequest>()
+            .WithSummary("Registra un avance (queda Pendiente); el IdCliente evita duplicados")
+            .RequireAuthorization(Politicas.RegistrarAvances)
+            .Produces<AvanceGuardado>(StatusCodes.Status201Created)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
     }
 }

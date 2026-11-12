@@ -20,7 +20,17 @@ public static class ValoresProyecto
 
     // Id fijos del catálogo EstadosProyecto (datos semilla).
     public const int EnElaboracion = 1;
+    public const int EnRevision = 2;
     public const int Devuelto = 3;
+    public const int Presentado = 4;
+    public const int Aprobado = 5;
+    public const int EnEjecucion = 6;
+    public const int Finalizado = 7;
+    public const int NoAprobado = 8;
+    public const int Suspendido = 9;
+
+    // Estados que se publican en el portal (HU-27).
+    public static readonly int[] EstadosPublicos = [Aprobado, EnEjecucion, Finalizado];
 
     /// <summary>Monto en pesos: igual al monto si es COP; si no, monto × tasa de cambio.</summary>
     public static decimal? EnCop(decimal? monto, string? moneda, decimal? tasa) =>

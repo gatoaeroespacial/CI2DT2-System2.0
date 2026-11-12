@@ -57,4 +57,16 @@ export type ProyectoDetalle = {
   }[];
 };
 
-export type Ficha = { proyecto: ProyectoDetalle; permisos: Permisos };
+export type Flujo = {
+  etapaRevision: string | null;
+  requisitos: { descripcion: string; cumple: boolean }[];
+  puedeEnviarRevision: boolean;
+  decisionesDisponibles: string[];
+  puedeRegistrarAprobacion: boolean;
+  puedeIniciarEjecucion: boolean;
+  puedeGestionarHitos: boolean;
+  puedeRegistrarAvances: boolean;
+  puedeGestionarPostulaciones: boolean;
+};
+
+export type Ficha = { proyecto: ProyectoDetalle; permisos: Permisos; flujo: Flujo };

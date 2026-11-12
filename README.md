@@ -62,7 +62,9 @@ Dos ambientes: **Pruebas** (rama `develop`) y **Producción** (rama `main`). Los
     "Cors": { "Origenes": [ "https://<dominio-frontend>" ] },
     "Smtp": { "Host": "...", "Puerto": 587, "UsarSsl": true, "Usuario": "...", "Contrasena": "...", "Remitente": "..." },
     "Gemini": { "ApiKey": "<clave de Gemini>", "Modelo": "gemini-2.5-flash" },
-    "DataProtection": { "RutaLlaves": "<carpeta persistente con permisos de escritura>" }
+    "DataProtection": { "RutaLlaves": "<carpeta persistente con permisos de escritura>" },
+    "Archivos": { "Ruta": "<carpeta de documentos fuera de wwwroot>" },
+    "Trabajos": { "ApiKey": "<clave del programador externo de alertas>" }
   }
   ``` 
 - **Frontend (Vercel)**: proyecto con *Root Directory* `frontend`, integración con GitHub (vista previa por
@@ -71,6 +73,9 @@ Dos ambientes: **Pruebas** (rama `develop`) y **Producción** (rama `main`). Los
 HTTPS es obligatorio (HSTS y redirección en la API) y CORS solo admite los orígenes configurados.
 El token de refresco viaja en una cookie HttpOnly, Secure, SameSite=Strict; como el navegador solo habla
 con el dominio del frontend (proxy de Next.js), la cookie no se bloquea entre dominios.
+
+Paso a paso de los servicios gratuitos (correo con Brevo, alertas con cron-job.org, Gemini y archivos):
+[docs/servicios-externos.md](docs/servicios-externos.md).
 
 ## Base de datos: respaldo y restauración
 

@@ -8,7 +8,7 @@ import { Boton, Campo, Cargando, claseEntrada, EstadoError, EstadoVacio, Tabla, 
 import { api, descargarDocumento } from "@/lib/api";
 import { useCatalogos } from "@/lib/consultas";
 import { FORMATOS_DOCUMENTO, validarArchivo } from "@/lib/esquemas";
-import { fechaCorta } from "@/lib/formato";
+import { fechaCortaUtc } from "@/lib/formato";
 import type { Permisos } from "./tipos";
 
 type Documento = {
@@ -22,16 +22,24 @@ type Documento = {
 };
 
 /** HU-21: documentos del proyecto con huella SHA-256 y descarga por URL firmada temporal. */
-export function Documentos({ proyectoId, permisos }: { proyectoId: number; permisos: Permisos }) {
+export function Documentos({
+  proyectoId,
+  permisos,
+  entidadTipo = "Proyecto",
+}: {
+  proyectoId: number;
+  permisos: Pick<Permisos, "puedeGestionarDocumentos">;
+  entidadTipo?: "Proyecto" | "Convocatoria";
+}) {
   const queryClient = useQueryClient();
   const catalogos = useCatalogos();
   const entrada = useRef<HTMLInputElement>(null);
   const [tipo, setTipo] = useState("");
   const [error, setError] = useState<string>();
-  const clave = ["documentos", "Proyecto", proyectoId];
+  const clave = ["documentos", entidadTipo, proyectoId];
   const documentos = useQuery({
     queryKey: clave,
-    queryFn: () => api<Documento[]>(`/documentos?entidadTipo=Proyecto&entidadId=${proyectoId}`),
+    queryFn: () => api<Documento[]>(`/documentos?entidadTipo=${entidadTipo}&entidadId=${proyectoId}`),
   });
 
   const cargar = useMutation({
@@ -58,7 +66,7 @@ export function Documentos({ proyectoId, permisos }: { proyectoId: number; permi
     const datos = new FormData();
     datos.append("archivo", archivo);
     datos.append("tipoDocumentoId", tipo);
-    datos.append("entidadTipo", "Proyecto");
+    datos.append("entidadTipo", entidadTipo);
     datos.append("entidadId", String(proyectoId));
     cargar.mutate(datos);
   };
@@ -68,7 +76,7 @@ export function Documentos({ proyectoId, permisos }: { proyectoId: number; permi
     { titulo: "Tipo", celda: (d) => d.tipoDocumento },
     { titulo: "Versión", celda: (d) => d.version },
     { titulo: "Subido por", celda: (d) => d.subidoPor },
-    { titulo: "Fecha", celda: (d) => fechaCorta(d.fechaSubida) },
+    { titulo: "Fecha", celda: (d) => fechaCortaUtc(d.fechaSubida) },
     { titulo: "SHA-256", celda: (d) => <span className="font-mono text-xs" title={d.hashSha256}>{d.hashSha256.slice(0, 12)}…</span> },
     {
       titulo: "Acciones",
@@ -87,7 +95,7 @@ export function Documentos({ proyectoId, permisos }: { proyectoId: number; permi
       ) : documentos.isError ? (
         <EstadoError mensaje={documentos.error.message} onReintentar={() => documentos.refetch()} />
       ) : documentos.data.length === 0 ? (
-        <EstadoVacio titulo="El proyecto no tiene documentos" />
+        <EstadoVacio titulo={entidadTipo === "Proyecto" ? "El proyecto no tiene documentos" : "No hay documentos cargados"} />
       ) : (
         <Tabla columnas={columnas} filas={documentos.data} clave={(d) => d.id} />
       )}

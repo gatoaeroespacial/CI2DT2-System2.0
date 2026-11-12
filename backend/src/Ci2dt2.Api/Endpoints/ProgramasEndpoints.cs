@@ -42,6 +42,12 @@ public sealed class ProgramasEndpoints : IEndpointModule
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorApi>(StatusCodes.Status404NotFound);
 
+        grupo.MapGet("/{id:int}/adscritos", async (int id, ProgramasQueries consultas, CancellationToken ct) =>
+                Results.Ok(await consultas.AdscritosAsync(id, ct)))
+            .WithSummary("Usuarios con adscripción vigente al programa (candidatos a Investigador Principal)")
+            .RequireAuthorization(Politicas.CrearPropuestas)
+            .Produces<IReadOnlyList<Ci2dt2.Application.Usuarios.UsuarioOpcion>>();
+
         // ----- Objetivos específicos (CRUD + orden) -----
         var objetivos = grupo.MapGroup("/{id:int}/objetivos");
 

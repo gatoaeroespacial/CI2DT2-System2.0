@@ -5,7 +5,11 @@ namespace Ci2dt2.Api.Endpoints;
 
 public sealed record RespuestaSesion(string AccessToken, DateTime ExpiraEn, UsuarioSesion Usuario);
 
-/// <summary>HU-01 y HU-02: inicio de sesión, renovación y cierre de sesión.</summary>
+public sealed record MensajeApi(string Mensaje);
+
+public sealed record ValidezEnlace(bool Valido);
+
+/// <summary>HU-01 y HU-02: inicio de sesión, renovación y cierre de sesión; HU-03: restablecer contraseña.</summary>
 public sealed class AuthEndpoints : IEndpointModule
 {
     /// <summary>Cookie HttpOnly con el token de refresco; solo viaja a las rutas de autenticación.</summary>
@@ -32,6 +36,32 @@ public sealed class AuthEndpoints : IEndpointModule
         grupo.MapPost("/logout", CerrarSesion)
             .WithSummary("Cierra la sesión y revoca el token de refresco actual")
             .Produces(StatusCodes.Status204NoContent);
+
+        // ----- HU-03 -----
+        grupo.MapPost("/forgot-password", async (SolicitarRestablecimientoRequest request, RestablecimientoContrasenaService servicio, CancellationToken ct) =>
+            {
+                await servicio.SolicitarAsync(request.Email, ct);
+                // La respuesta es idéntica exista o no el correo (evita la enumeración de usuarios).
+                return Results.Ok(new MensajeApi(RestablecimientoContrasenaService.MensajeSolicitud));
+            })
+            .Validar<SolicitarRestablecimientoRequest>()
+            .WithSummary("Envía al correo un enlace para restablecer la contraseña (30 minutos, un solo uso)")
+            .Produces<MensajeApi>();
+
+        grupo.MapGet("/reset-password/validar", async (string token, RestablecimientoContrasenaService servicio, CancellationToken ct) =>
+                Results.Ok(new ValidezEnlace(await servicio.EsValidoAsync(token, ct))))
+            .WithSummary("Indica si el enlace de restablecimiento sigue vigente y sin usar")
+            .Produces<ValidezEnlace>();
+
+        grupo.MapPost("/reset-password", async (RestablecerContrasenaRequest request, RestablecimientoContrasenaService servicio, CancellationToken ct) =>
+            {
+                await servicio.RestablecerAsync(request.Token, request.Contrasena, ct);
+                return Results.NoContent();
+            })
+            .Validar<RestablecerContrasenaRequest>()
+            .WithSummary("Define la nueva contraseña con el enlace recibido y revoca todas las sesiones")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
     }
 
     private static async Task<IResult> Login(LoginRequest request, AuthService auth, HttpContext http, CancellationToken ct)

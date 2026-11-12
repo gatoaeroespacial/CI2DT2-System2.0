@@ -1,5 +1,6 @@
 using Ci2dt2.Application.Asistente;
 using Ci2dt2.Application.Common;
+using Ci2dt2.Application.Notificaciones;
 using Ci2dt2.Application.Seguridad;
 using Ci2dt2.Infrastructure.Archivos;
 using Ci2dt2.Infrastructure.Asistente;
@@ -7,6 +8,7 @@ using Ci2dt2.Infrastructure.Auditoria;
 using Ci2dt2.Infrastructure.Email;
 using Ci2dt2.Infrastructure.Persistence;
 using Ci2dt2.Infrastructure.Seguridad;
+using Ci2dt2.Infrastructure.Trabajos;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -42,6 +44,14 @@ public static class DependencyInjection
         services.Configure<OpcionesBaseDatos>(configuracion.GetSection(OpcionesBaseDatos.Seccion));
         services.Configure<OpcionesAdminInicial>(configuracion.GetSection(OpcionesAdminInicial.Seccion));
         services.Configure<OpcionesArchivos>(configuracion.GetSection(OpcionesArchivos.Seccion));
+        services.Configure<OpcionesFrontend>(configuracion.GetSection(OpcionesFrontend.Seccion));
+
+        // Correo (HU-23, HU-03) y alertas de hitos (HU-18) en segundo plano.
+        services.AddSingleton<ColaCorreos>();
+        services.AddSingleton<IColaCorreos>(sp => sp.GetRequiredService<ColaCorreos>());
+        services.AddHostedService<CorreosDirectosWorker>();
+        services.AddHostedService<NotificacionesCorreoWorker>();
+        services.AddHostedService<AlertasProgramadasWorker>();
 
         // Auditoría asíncrona (HU-28): cola en memoria y worker en segundo plano.
         services.AddSingleton<ColaAuditoria>();
@@ -50,15 +60,19 @@ public static class DependencyInjection
 
         services.AddSingleton<IAlmacenArchivos, AlmacenArchivosDisco>();
         services.AddSingleton<IEnlaceDescarga, EnlaceDescargaService>();
+        services.AddSingleton<ITokenRestablecimiento, TokenRestablecimientoService>();
 
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
 
         // Llaves persistentes para que las URL firmadas de descarga sobrevivan a los reinicios.
         var dataProtection = services.AddDataProtection().SetApplicationName("Ci2dt2");
+        // Sin ruta configurada se usa App_Data/llaves: en hosting sin perfil de usuario las llaves en
+        // memoria se perderían en cada reciclaje e invalidarían los enlaces vigentes.
         var rutaLlaves = configuracion["DataProtection:RutaLlaves"];
-        if (!string.IsNullOrWhiteSpace(rutaLlaves))
-            dataProtection.PersistKeysToFileSystem(new DirectoryInfo(rutaLlaves));
+        dataProtection.PersistKeysToFileSystem(new DirectoryInfo(string.IsNullOrWhiteSpace(rutaLlaves)
+            ? Path.Combine(AppContext.BaseDirectory, "App_Data", "llaves")
+            : rutaLlaves));
 
         services.AddSingleton<SmtpEmailSender>();
         services.AddSingleton<LogEmailSender>();

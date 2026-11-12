@@ -1,10 +1,10 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { apiAuth, renovarSesion } from "@/lib/api";
+import { api, apiAuth, renovarSesion } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { fechaLarga } from "@/lib/fechas";
 import { menuPara, rolesDeRuta, tieneAlgunRol } from "@/lib/roles";
@@ -83,6 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-3">
           <p className="text-sm text-slate-500 first-letter:uppercase">{fechaLarga(new Date())}</p>
           <div className="flex items-center gap-4">
+            <Campana ruta={ruta} />
             <div className="text-right">
               <p className="text-sm font-medium text-slate-900">
                 {usuario.nombres} {usuario.apellidos}
@@ -97,6 +98,69 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className={`flex-1 px-4 py-6 md:px-8 ${ruta === "/asistente" ? "flex min-h-0 flex-col overflow-hidden" : ""}`}>
           {autorizado ? children : <EstadoError mensaje="No tiene permisos para ver esta página." />}
         </main>
+        <AvisoPoliticaDatos />
+      </div>
+    </div>
+  );
+}
+
+/** HU-22 CA-1: campana con el contador de no leídas; se consulta al cargar cada página. */
+function Campana({ ruta }: { ruta: string }) {
+  const conteo = useQuery({
+    queryKey: ["no-leidas", ruta],
+    queryFn: () => api<{ noLeidas: number }>("/notificaciones/no-leidas"),
+  });
+  const n = conteo.data?.noLeidas ?? 0;
+  return (
+    <Link href="/notificaciones" aria-label={`Notificaciones: ${n} sin leer`} className="relative rounded-md p-2 text-slate-700 hover:bg-slate-100">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg>
+      {n > 0 && (
+        <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-xs font-semibold text-white">
+          {n > 99 ? "99+" : n}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+/** Ley 1581 de 2012: aceptación de la política de tratamiento de datos vigente. */
+function AvisoPoliticaDatos() {
+  const queryClient = useQueryClient();
+  const estado = useQuery({
+    queryKey: ["consentimiento"],
+    queryFn: () => api<{ politicaId: number | null; version: string | null; textoUrl: string | null; aceptado: boolean }>("/consentimientos/estado"),
+    staleTime: Infinity,
+  });
+  const [guardando, setGuardando] = useState(false);
+  if (!estado.data || estado.data.aceptado) return null;
+
+  const aceptar = async () => {
+    setGuardando(true);
+    try {
+      await api("/consentimientos", { method: "POST" });
+      await queryClient.invalidateQueries({ queryKey: ["consentimiento"] });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div role="dialog" aria-modal="true" aria-labelledby="titulo-politica" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+      <div className="max-w-lg rounded-lg bg-white p-6 shadow-xl">
+        <h2 id="titulo-politica" className="text-lg font-semibold text-slate-900">Política de tratamiento de datos personales</h2>
+        <p className="mt-2 text-sm text-slate-700">
+          Para usar la plataforma debe aceptar la política de tratamiento de datos personales de la Universidad de Caldas
+          (versión {estado.data.version}), conforme a la Ley 1581 de 2012.
+        </p>
+        <a href={estado.data.textoUrl ?? "/politica-datos"} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-emerald-800 hover:underline">
+          Leer la política
+        </a>
+        <div className="mt-4 flex justify-end">
+          <Boton disabled={guardando} onClick={aceptar}>Acepto la política</Boton>
+        </div>
       </div>
     </div>
   );

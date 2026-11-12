@@ -162,3 +162,12 @@ describe("fechas en español", () => {
     expect(fechaLarga(new Date(2026, 9, 7))).toBe("miércoles, 7 de octubre de 2026");
   });
 });
+
+describe("adjuntos de avances (HU-19 CA-4)", () => {
+  it("rechaza tipos no permitidos y archivos de más de 20 MB antes de subirlos", async () => {
+    const { validarAdjunto } = await import("./esquemas");
+    expect(validarAdjunto("datos.csv", 1000)).toBeNull();
+    expect(validarAdjunto("informe.pptx", 1000)).not.toBeNull();
+    expect(validarAdjunto("foto.png", 30 * 1024 * 1024)).not.toBeNull();
+  });
+});

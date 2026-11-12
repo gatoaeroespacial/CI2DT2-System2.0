@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
-import { Autocompletar, buscarUsuarios, ErrorFormulario } from "@/components/controles";
+import { useQuery } from "@tanstack/react-query";
+import { useForm, useWatch } from "react-hook-form";
+import { ErrorFormulario } from "@/components/controles";
 import { Boton, Campo, claseEntrada } from "@/components/ui";
-import { ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { useCatalogos } from "@/lib/consultas";
 import { enCop, esquemaProyecto, MONEDAS, type DatosProyecto } from "@/lib/esquemas";
@@ -58,7 +59,12 @@ export function FormularioProyecto({
     ? catalogos.data?.programas
     : catalogos.data?.programas.filter((p) => usuario?.programas.includes(p.id));
 
-  const [moneda, presupuesto, tasa] = useWatch({ control, name: ["moneda", "presupuestoTotal", "tasaCambio"] });
+  const [moneda, presupuesto, tasa, programaId] = useWatch({ control, name: ["moneda", "presupuestoTotal", "tasaCambio", "programaId"] });
+  const adscritos = useQuery({
+    queryKey: ["adscritos", programaId],
+    queryFn: () => api<{ id: number; nombre: string; email: string }[]>(`/programas/${programaId}/adscritos`),
+    enabled: creando && designaIp && !!programaId,
+  });
   const valorCop = moneda === "" ? null : enCop(presupuesto === "" ? null : Number(presupuesto), moneda, tasa === "" ? null : Number(tasa));
 
   const enviar = handleSubmit(async (datos) => {
@@ -110,14 +116,18 @@ export function FormularioProyecto({
         </Campo>
         {creando && designaIp && (
           <Campo id="investigadorPrincipalId" etiqueta="Investigador principal (vacío = usted)" error={errors.investigadorPrincipalId?.message}>
-            <Controller
-              control={control}
-              name="investigadorPrincipalId"
-              render={({ field }) => (
-                <Autocompletar id="investigadorPrincipalId" valor={field.value} onCambio={(v) => field.onChange(v)}
-                  buscar={buscarUsuarios} claveConsulta="buscar-usuarios" placeholder="Nombre o correo" />
-              )}
-            />
+            {/* Solo los adscritos vigentes al programa pueden ser IP (HU-08, P1.1). */}
+            <select id="investigadorPrincipalId" className={claseEntrada} disabled={!programaId} {...register("investigadorPrincipalId")}>
+              <option value="">{programaId ? "Usted (si está adscrito al programa)" : "Seleccione primero el programa"}</option>
+              {adscritos.data?.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.nombre} · {u.email}
+                </option>
+              ))}
+            </select>
+            {programaId && adscritos.data?.length === 0 && (
+              <p className="text-xs text-amber-700">El programa no tiene integrantes vigentes. Vincúlelos en Programas.</p>
+            )}
           </Campo>
         )}
         <Campo id="fechaInicio" etiqueta="Fecha de inicio" error={errors.fechaInicio?.message}>

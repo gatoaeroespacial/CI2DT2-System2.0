@@ -18,10 +18,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  // El portal público llega en el Sprint 4; por ahora la raíz lleva al inicio de sesión.
-  async redirects() {
-    return [{ source: "/", destination: "/login", permanent: false }];
-  },
   async rewrites() {
     return [{ source: "/api/v1/:path*", destination: `${apiUrl}/api/v1/:path*` }];
   },

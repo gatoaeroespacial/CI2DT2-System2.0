@@ -44,6 +44,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public const string AdminEmail = "admin@pruebas.local";
     public const string AdminPassword = "AdminPrueba123";
     public const string PasswordPrueba = "ClavePrueba123";
+    public const string ClaveJobs = "clave-jobs-pruebas";
 
     private readonly string _conexion;
     public EmailSenderFalso Correos { get; } = new();
@@ -62,6 +63,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Jwt:Clave", "clave-de-pruebas-de-integracion-0123456789abcdef");
         builder.UseSetting("AdminInicial:Email", AdminEmail);
         builder.UseSetting("AdminInicial:Password", AdminPassword);
+        // Los trabajos en segundo plano no corren solos en las pruebas: se invocan explícitamente.
+        builder.UseSetting("Trabajos:AlertasAutomaticas", "false");
+        builder.UseSetting("Trabajos:IntervaloCorreoSegundos", "86400");
+        builder.UseSetting("Trabajos:ApiKey", ClaveJobs);
+        builder.UseSetting("Frontend:Url", "https://app.pruebas.local");
+        builder.UseSetting("DataProtection:RutaLlaves", Path.Combine(Path.GetTempPath(), $"ci2dt2-llaves-{Guid.NewGuid():N}"));
         builder.UseSetting("Archivos:Ruta", Path.Combine(Path.GetTempPath(), $"ci2dt2-pruebas-{Guid.NewGuid():N}"));
         builder.ConfigureTestServices(s =>
         {

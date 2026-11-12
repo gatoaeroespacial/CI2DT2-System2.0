@@ -9,6 +9,8 @@ export type Catalogos = {
   estadosProyecto: Opcion[];
   tiposDocumento: Opcion[];
   tiposAliado: Opcion[];
+  tiposConvocatoria: Opcion[];
+  tiposHito: Opcion[];
 };
 
 /** Catálogos de datos semilla (programas, tipos y estados) para formularios y filtros. */

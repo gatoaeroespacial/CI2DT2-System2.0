@@ -21,6 +21,18 @@ export function fechaCorta(valor: string | null | undefined): string {
   return format(fecha, "dd/MM/yyyy", { locale: es });
 }
 
+/** Fecha corta de un instante guardado en UTC (subidas, capturas), mostrada en la hora local. */
+export function fechaCortaUtc(valor: string | null | undefined): string {
+  if (!valor) return "—";
+  return format(new Date(valor.endsWith("Z") || valor.includes("+") ? valor : `${valor}Z`), "dd/MM/yyyy", { locale: es });
+}
+
+/** Fecha y hora en español, p. ej. "07/10/2026 14:30". */
+export function fechaHora(valor: string | null | undefined): string {
+  if (!valor) return "—";
+  return format(new Date(valor.endsWith("Z") || valor.includes("+") ? valor : `${valor}Z`), "dd/MM/yyyy HH:mm", { locale: es });
+}
+
 /** Valor para un input type="date" a partir de una fecha ISO de la API. */
 export const aFechaInput = (valor: string | null | undefined) => (valor ? valor.slice(0, 10) : "");
 

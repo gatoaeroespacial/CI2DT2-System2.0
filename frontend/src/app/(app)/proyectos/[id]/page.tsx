@@ -6,14 +6,18 @@ import { useParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { BarraAvance, InsigniaEstado, Pestanas } from "@/components/controles";
-import { Boton, Cargando, Encabezado, EstadoError, EstadoVacio, Tabla, type Columna } from "@/components/ui";
+import { Boton, Cargando, Encabezado, EstadoError, EstadoVacio } from "@/components/ui";
 import { api, json } from "@/lib/api";
 import { aPeticionProyecto, type DatosProyecto } from "@/lib/esquemas";
-import { aFechaInput, fechaCorta, formatoCop, formatoMonto } from "@/lib/formato";
+import { aFechaInput, fechaCorta, fechaHora, formatoCop, formatoMonto } from "@/lib/formato";
 import { FormularioProyecto } from "../formulario-proyecto";
+import { Avances } from "./avances";
 import { Documentos } from "./documentos";
 import { Equipo } from "./equipo";
 import { Financiacion } from "./financiacion";
+import { PanelFlujo } from "./flujo";
+import { Hitos } from "./hitos";
+import { Postulaciones } from "./postulaciones";
 import type { Ficha, ProyectoDetalle } from "./tipos";
 
 type IdPestana = "general" | "equipo" | "financiacion" | "convocatorias" | "cronograma" | "avances" | "revisiones" | "documentos";
@@ -38,7 +42,7 @@ export default function FichaProyecto() {
   if (ficha.isPending) return <Cargando />;
   if (ficha.isError) return <EstadoError mensaje={ficha.error.message} onReintentar={() => ficha.refetch()} />;
 
-  const { proyecto, permisos } = ficha.data;
+  const { proyecto, permisos, flujo } = ficha.data;
 
   return (
     <>
@@ -54,13 +58,14 @@ export default function FichaProyecto() {
         <span>IP: {proyecto.investigadorPrincipal}</span>
         <BarraAvance valor={proyecto.porcentajeAvance} />
       </div>
+      <PanelFlujo proyecto={proyecto} flujo={flujo} />
       <Pestanas pestanas={PESTANAS} activa={pestana} onCambio={setPestana} />
       {pestana === "general" && <General proyecto={proyecto} puedeEditar={permisos.puedeEditar} />}
       {pestana === "equipo" && <Equipo proyectoId={id} permisos={permisos} />}
       {pestana === "financiacion" && <Financiacion proyectoId={id} puedeEditar={permisos.puedeEditar} />}
-      {pestana === "convocatorias" && <Convocatorias proyecto={proyecto} />}
-      {pestana === "cronograma" && <Cronograma proyecto={proyecto} />}
-      {pestana === "avances" && <Avances proyecto={proyecto} />}
+      {pestana === "convocatorias" && <Postulaciones proyectoId={proyecto.id} puedeGestionar={flujo.puedeGestionarPostulaciones} />}
+      {pestana === "cronograma" && <Hitos proyecto={proyecto} puedeGestionar={flujo.puedeGestionarHitos} />}
+      {pestana === "avances" && <Avances proyecto={proyecto} puedeRegistrar={flujo.puedeRegistrarAvances} />}
       {pestana === "revisiones" && <Revisiones proyecto={proyecto} />}
       {pestana === "documentos" && <Documentos proyectoId={Number(id)} permisos={permisos} />}
     </>
@@ -137,72 +142,22 @@ function General({ proyecto, puedeEditar }: { proyecto: ProyectoDetalle; puedeEd
   );
 }
 
-function Listado<T>({ filas, columnas, vacio }: { filas: T[]; columnas: Columna<T>[]; vacio: string }) {
-  return filas.length === 0 ? <EstadoVacio titulo={vacio} /> : <Tabla columnas={columnas} filas={filas} clave={(f) => (f as { id: number }).id} />;
-}
-
-function Convocatorias({ proyecto }: { proyecto: ProyectoDetalle }) {
-  return (
-    <Listado
-      filas={proyecto.convocatorias}
-      vacio="El proyecto no se ha postulado a convocatorias"
-      columnas={[
-        { titulo: "Convocatoria", celda: (c) => c.convocatoria },
-        { titulo: "Presentación", celda: (c) => fechaCorta(c.fechaPresentacion) },
-        { titulo: "Monto solicitado", celda: (c) => formatoCop(c.montoSolicitadoCop) },
-        { titulo: "Fase externa", celda: (c) => c.faseExterna ?? "—" },
-        { titulo: "Resultado", celda: (c) => c.resultado ?? "—" },
-      ]}
-    />
-  );
-}
-
-function Cronograma({ proyecto }: { proyecto: ProyectoDetalle }) {
-  return (
-    <Listado
-      filas={proyecto.cronograma}
-      vacio="El proyecto no tiene hitos registrados"
-      columnas={[
-        { titulo: "Hito", celda: (h) => h.titulo },
-        { titulo: "Tipo", celda: (h) => h.tipoHito },
-        { titulo: "Fecha límite", celda: (h) => fechaCorta(h.fechaLimite) },
-        { titulo: "Estado", celda: (h) => h.estado },
-        { titulo: "Responsable", celda: (h) => h.responsable ?? "—" },
-        { titulo: "Completado", celda: (h) => fechaCorta(h.fechaCompletado) },
-      ]}
-    />
-  );
-}
-
-function Avances({ proyecto }: { proyecto: ProyectoDetalle }) {
-  return (
-    <Listado
-      filas={proyecto.avances}
-      vacio="El proyecto no tiene avances registrados"
-      columnas={[
-        { titulo: "Avance", celda: (a) => a.titulo },
-        { titulo: "Autor", celda: (a) => a.autor },
-        { titulo: "% avance", celda: (a) => <BarraAvance valor={a.porcentajeAvance} /> },
-        { titulo: "Captura", celda: (a) => fechaCorta(a.fechaCaptura) },
-        { titulo: "Validación", celda: (a) => a.estadoValidacion ?? "—" },
-      ]}
-    />
-  );
-}
-
+/** HU-11 CA-7: historial de revisiones como línea de tiempo cronológica. */
 function Revisiones({ proyecto }: { proyecto: ProyectoDetalle }) {
+  if (proyecto.revisiones.length === 0) return <EstadoVacio titulo="El proyecto no tiene revisiones registradas" />;
+  const cronologico = [...proyecto.revisiones].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
   return (
-    <Listado
-      filas={proyecto.revisiones}
-      vacio="El proyecto no tiene revisiones registradas"
-      columnas={[
-        { titulo: "Fecha", celda: (r) => fechaCorta(r.fecha) },
-        { titulo: "Etapa", celda: (r) => r.etapa },
-        { titulo: "Decisión", celda: (r) => r.decision },
-        { titulo: "Revisor", celda: (r) => r.revisor },
-        { titulo: "Estado resultante", celda: (r) => r.estadoNuevo },
-        { titulo: "Observaciones", celda: (r) => r.observaciones ?? "—" },
-      ]}
-    />
+    <ol className="relative flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6 pl-10" aria-label="Historial de revisiones">
+      {cronologico.map((r) => (
+        <li key={r.id} className="relative">
+          <span className={`absolute -left-6 top-1.5 h-3 w-3 rounded-full ${r.decision === "Devuelve" || r.decision === "No aprobado" ? "bg-orange-500" : "bg-emerald-600"}`} aria-hidden />
+          <p className="text-sm font-medium text-slate-900">
+            {r.decision} · etapa {r.etapa} → {r.estadoNuevo}
+          </p>
+          <p className="text-xs text-slate-600">{fechaHora(r.fecha)} · {r.revisor}</p>
+          {r.observaciones && <p className="mt-1 whitespace-pre-line text-sm text-slate-800">{r.observaciones}</p>}
+        </li>
+      ))}
+    </ol>
   );
 }
