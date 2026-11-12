@@ -61,7 +61,7 @@ Dos ambientes: **Pruebas** (rama `develop`) y **Producción** (rama `main`). Los
     "Frontend": { "Url": "https://<dominio-frontend>" },
     "Cors": { "Origenes": [ "https://<dominio-frontend>" ] },
     "Smtp": { "Host": "...", "Puerto": 587, "UsarSsl": true, "Usuario": "...", "Contrasena": "...", "Remitente": "..." },
-    "Gemini": { "ApiKey": "<clave de Gemini>", "Modelo": "gemini-2.5-flash" },
+    "Gemini": { "ApiKey": "<clave de Gemini>", "Modelo": "gemini-3.5-flash" },
     "DataProtection": { "RutaLlaves": "<carpeta persistente con permisos de escritura>" },
     "Archivos": { "Ruta": "<carpeta de documentos fuera de wwwroot>" },
     "Trabajos": { "ApiKey": "<clave del programador externo de alertas>" }

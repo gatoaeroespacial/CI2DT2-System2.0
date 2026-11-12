@@ -30,7 +30,7 @@ public sealed class GeminiAnswerGenerator(
         if (string.IsNullOrWhiteSpace(apiKey))
             throw new AsistenteNoConfiguradoException();
 
-        var modelo = configuracion["Gemini:Modelo"] ?? "gemini-2.5-flash";
+        var modelo = configuracion["Gemini:Modelo"] ?? "gemini-3.5-flash";
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(modelo)}:generateContent");

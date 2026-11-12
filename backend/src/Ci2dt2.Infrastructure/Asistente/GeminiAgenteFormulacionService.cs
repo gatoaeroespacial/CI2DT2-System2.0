@@ -26,7 +26,7 @@ public sealed class GeminiAgenteFormulacionService(
         return apiKey;
     }
 
-    private string ObtenerModelo() => configuracion["Gemini:Modelo"] ?? "gemini-2.5-flash";
+    private string ObtenerModelo() => configuracion["Gemini:Modelo"] ?? "gemini-3.5-flash";
 
     public async Task<AnalisisTdrResultado> AnalizarTdrEIdearAsync(
         AnalisisTdrRequest request,

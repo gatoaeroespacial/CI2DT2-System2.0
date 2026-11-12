@@ -60,7 +60,7 @@ Ajusta los valores entre `<...>` y mantén las comillas y la estructura JSON.
   },
   "Gemini": {
     "ApiKey": "<clave de Gemini>",
-    "Modelo": "gemini-2.5-flash"
+    "Modelo": "gemini-3.5-flash"
   },
   "Archivos": {
     "Ruta": "<carpeta de documentos, ej. C:\\inetpub\\wwwroot\\MiSitio\\files>"

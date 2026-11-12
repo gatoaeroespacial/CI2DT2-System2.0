@@ -46,7 +46,7 @@ MonsterASP recicla la aplicación cuando no tiene visitas y detiene las tareas e
 El plan gratuito de Google AI Studio tiene límites de solicitudes por minuto y por día; en el plan gratuito Google puede usar los datos enviados para mejorar sus productos, así que no envíe información confidencial hasta pasar a un plan de pago.
 
 1. Entre a <https://aistudio.google.com> con una cuenta de Google → *Get API key → Create API key*.
-2. Agregue al `APPSETTINGS_JSON`: `"Gemini": { "ApiKey": "<clave>", "Modelo": "gemini-2.5-flash" }`.
+2. Agregue al `APPSETTINGS_JSON`: `"Gemini": { "ApiKey": "<clave>", "Modelo": "gemini-3.5-flash" }`.
 3. En local puede ponerla en un archivo `.env` junto a la API (no se sube a Git): `Gemini__ApiKey=<clave>`.
 4. Prueba: menú **Asistente IA** (Admin o Director) o **Proyectos → Asistente de Formulación IA**. Sin clave responden 503 "asistente no configurado".
 
