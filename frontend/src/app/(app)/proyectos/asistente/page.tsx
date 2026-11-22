@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { Boton, Cargando, claseEntrada } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
+import { Markdown } from "@/components/markdown";
 import {
   SECCIONES_PREDETERMINADAS,
   useFormulacionStore,
@@ -638,7 +639,11 @@ export default function AsistenteFormulacionPage() {
                       : "bg-slate-100 text-slate-800 border border-slate-200"
                   }`}
                 >
-                  <div className="prose prose-sm max-w-none whitespace-pre-wrap">{msg.texto}</div>
+                  {msg.rol === "usuario" ? (
+                    <div className="whitespace-pre-wrap">{msg.texto}</div>
+                  ) : (
+                    <Markdown contenido={msg.texto} />
+                  )}
 
                   {/* Botón de Inserción directa en el borrador si es una sección redactada */}
                   {msg.tipoMensaje === "propuesta_seccion" && msg.seccionDestino && (
@@ -665,8 +670,12 @@ export default function AsistenteFormulacionPage() {
                   <span className="h-2 w-2 rounded-full bg-emerald-600 animate-ping" />
                   Redactando sección: {secciones[seccionEnStreaming]?.tituloSeccion ?? seccionEnStreaming}...
                 </div>
-                <div className="whitespace-pre-wrap font-sans text-slate-700 bg-white p-2 rounded border border-emerald-100 max-h-48 overflow-y-auto">
-                  {streamingTexto || "Conectando con el redactor científico..."}
+                <div className="font-sans text-slate-700 bg-white p-2 rounded border border-emerald-100 max-h-48 overflow-y-auto">
+                  {streamingTexto ? (
+                    <Markdown contenido={streamingTexto} />
+                  ) : (
+                    "Conectando con el redactor científico..."
+                  )}
                 </div>
               </div>
             )}

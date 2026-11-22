@@ -178,7 +178,7 @@ public sealed partial class ExportadorBorradorDocxService(
             // Subtítulos markdown (###, ##, #)
             if (lineaTrim.StartsWith("### "))
             {
-                body.AppendChild(CrearParrafo(
+                body.AppendChild(CrearParrafoMarkdown(
                     lineaTrim[4..],
                     negrita: true,
                     tamanoFuente: 20,
@@ -188,7 +188,7 @@ public sealed partial class ExportadorBorradorDocxService(
             }
             else if (lineaTrim.StartsWith("## "))
             {
-                body.AppendChild(CrearParrafo(
+                body.AppendChild(CrearParrafoMarkdown(
                     lineaTrim[3..],
                     negrita: true,
                     tamanoFuente: 22,
@@ -196,18 +196,46 @@ public sealed partial class ExportadorBorradorDocxService(
                     espacioAntes: 220,
                     espacioDespues: 80));
             }
+            else if (lineaTrim.StartsWith("# "))
+            {
+                body.AppendChild(CrearParrafoMarkdown(
+                    lineaTrim[2..],
+                    negrita: true,
+                    tamanoFuente: 24,
+                    colorHex: "0F172A",
+                    espacioAntes: 260,
+                    espacioDespues: 100));
+            }
             else if (lineaTrim.StartsWith("- ") || lineaTrim.StartsWith("* "))
             {
                 // Elemento de viñeta
                 body.AppendChild(CrearParrafo(
-                    $"•  {lineaTrim[2..]}",
+                    "",
                     tamanoFuente: 20,
                     sangriaIzquierda: 360));
+                var parrafo = body.LastChild as Paragraph;
+                if (parrafo is not null)
+                {
+                    parrafo.RemoveAllChildren<Run>();
+                    AgregarTextoMarkdown(parrafo, $"•  {lineaTrim[2..]}", tamanoFuente: 20);
+                }
+            }
+            else if (Regex.Match(lineaTrim, @"^\d+\.\s+").Success)
+            {
+                var textoNumerado = Regex.Replace(lineaTrim, @"^\d+\.\s+", match => $"{match.Value}");
+                body.AppendChild(CrearParrafoMarkdown(
+                    textoNumerado,
+                    tamanoFuente: 20,
+                    sangriaIzquierda: 360));
+            }
+            else if (lineaTrim is "---" or "***" or "___")
+            {
+                body.AppendChild(CrearSeparador());
             }
             else
             {
                 // Párrafo de texto estándar
-                body.AppendChild(CrearParrafo(
+                body.AppendChild(CrearParrafoMarkdown(
                     lineaTrim,
                     tamanoFuente: 20,
                     alineacion: JustificationValues.Both,
@@ -237,7 +265,7 @@ public sealed partial class ExportadorBorradorDocxService(
             foreach (var celda in celdas)
             {
                 var tc = new TableCell();
-                tc.AppendChild(CrearParrafo(
+                tc.AppendChild(CrearParrafoMarkdown(
                     celda,
                     negrita: esEncabezado,
                     tamanoFuente: esEncabezado ? 18 : 16,
@@ -302,6 +330,108 @@ public sealed partial class ExportadorBorradorDocxService(
         parrafo.AppendChild(run);
 
         return parrafo;
+    }
+
+    private static Paragraph CrearParrafoMarkdown(
+        string texto,
+        bool negrita = false,
+        bool cursiva = false,
+        int tamanoFuente = 20,
+        string colorHex = "000000",
+        JustificationValues? alineacion = null,
+        int espacioAntes = 0,
+        int espacioDespues = 0,
+        int sangriaIzquierda = 0)
+    {
+        var parrafo = new Paragraph();
+        var pPr = new ParagraphProperties();
+
+        if (alineacion.HasValue)
+            pPr.AppendChild(new Justification { Val = alineacion.Value });
+
+        if (espacioAntes > 0 || espacioDespues > 0)
+        {
+            pPr.AppendChild(new SpacingBetweenLines
+            {
+                Before = espacioAntes > 0 ? espacioAntes.ToString() : "0",
+                After = espacioDespues > 0 ? espacioDespues.ToString() : "0",
+                Line = "240",
+                LineRule = LineSpacingRuleValues.Auto
+            });
+        }
+
+        if (sangriaIzquierda > 0)
+            pPr.AppendChild(new Indentation { Left = sangriaIzquierda.ToString() });
+
+        parrafo.AppendChild(pPr);
+        AgregarTextoMarkdown(parrafo, texto, negrita, cursiva, tamanoFuente, colorHex);
+        return parrafo;
+    }
+
+    private static void AgregarTextoMarkdown(
+        Paragraph parrafo,
+        string texto,
+        bool negrita = false,
+        bool cursiva = false,
+        int tamanoFuente = 20,
+        string colorHex = "000000")
+    {
+        var coincidencias = Regex.Matches(
+            texto,
+            @"(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`)");
+
+        var posicion = 0;
+        foreach (Match coincidencia in coincidencias)
+        {
+            if (coincidencia.Index > posicion)
+                AgregarRun(parrafo, texto[posicion..coincidencia.Index], negrita, cursiva, tamanoFuente, colorHex);
+
+            var fragmento = coincidencia.Value;
+            if (fragmento.StartsWith("***") && fragmento.EndsWith("***"))
+            {
+                AgregarRun(parrafo, fragmento[3..^3], true, true, tamanoFuente, colorHex);
+            }
+            else if ((fragmento.StartsWith("**") && fragmento.EndsWith("**")) ||
+                     (fragmento.StartsWith("__") && fragmento.EndsWith("__")))
+            {
+                AgregarRun(parrafo, fragmento[2..^2], true, cursiva, tamanoFuente, colorHex);
+            }
+            else if ((fragmento.StartsWith("*") && fragmento.EndsWith("*")) ||
+                     (fragmento.StartsWith("_") && fragmento.EndsWith("_")))
+            {
+                AgregarRun(parrafo, fragmento[1..^1], negrita, true, tamanoFuente, colorHex);
+            }
+            else if (fragmento.StartsWith('`') && fragmento.EndsWith('`'))
+            {
+                AgregarRun(parrafo, fragmento[1..^1], false, false, tamanoFuente, "334155");
+            }
+
+            posicion = coincidencia.Index + coincidencia.Length;
+        }
+
+        if (posicion < texto.Length)
+            AgregarRun(parrafo, texto[posicion..], negrita, cursiva, tamanoFuente, colorHex);
+    }
+
+    private static void AgregarRun(
+        Paragraph parrafo,
+        string texto,
+        bool negrita,
+        bool cursiva,
+        int tamanoFuente,
+        string colorHex)
+    {
+        var run = new Run();
+        var rPr = new RunProperties();
+        if (negrita) rPr.AppendChild(new Bold());
+        if (cursiva) rPr.AppendChild(new Italic());
+        rPr.AppendChild(new FontSize { Val = tamanoFuente.ToString() });
+        rPr.AppendChild(new Color { Val = colorHex });
+        rPr.AppendChild(new RunFonts { Ascii = "Calibri", HighAnsi = "Calibri" });
+
+        run.AppendChild(rPr);
+        run.AppendChild(new Text(texto) { Space = SpaceProcessingModeValues.Preserve });
+        parrafo.AppendChild(run);
     }
 
     private static Paragraph CrearEspacio() =>

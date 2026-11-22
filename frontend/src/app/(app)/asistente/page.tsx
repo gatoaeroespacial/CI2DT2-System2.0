@@ -4,6 +4,7 @@ import { startTransition, useEffect, useRef, useState, type FormEvent, type Keyb
 import { Boton, Encabezado } from "@/components/ui";
 import { api, json } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
+import { Markdown } from "@/components/markdown";
 
 type Mensaje = { id: number; autor: "usuario" | "asistente"; texto: string };
 type RespuestaAsistente = { respuesta: string };
@@ -186,16 +187,20 @@ export default function AsistentePage() {
         ) : (
           <div className="space-y-4 px-2 pt-4">
             {mensajes.map((mensaje) => (
-              <p
+              <div
                 key={mensaje.id}
-                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
                   mensaje.autor === "usuario"
                     ? "ml-auto bg-emerald-800 text-white"
                     : "mr-auto border border-slate-200 bg-white text-slate-800 shadow-sm"
                 }`}
               >
-                {mensaje.texto}
-              </p>
+                {mensaje.autor === "usuario" ? (
+                  <div className="whitespace-pre-wrap">{mensaje.texto}</div>
+                ) : (
+                  <Markdown contenido={mensaje.texto} />
+                )}
+              </div>
             ))}
             {cargando && (
               <p role="status" className="mr-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
