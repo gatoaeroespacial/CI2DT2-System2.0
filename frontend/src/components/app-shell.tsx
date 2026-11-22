@@ -1,14 +1,145 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { api, apiAuth, renovarSesion } from "@/lib/api";
+import logoCi2dt2 from "@/assets/img/LOGO_CI2DT2.png";
 import { useAuth } from "@/lib/auth-store";
 import { fechaLarga } from "@/lib/fechas";
 import { menuPara, rolesDeRuta, tieneAlgunRol } from "@/lib/roles";
 import { Boton, Cargando, EstadoError } from "./ui";
+
+function iconoMenu(href: string) {
+  const iconos: Record<string, string> = {
+    "/asistente": "smart_toy",
+    "/tablero-centro": "dashboard",
+    "/proyectos": "folder",
+    "/convocatorias": "campaign",
+    "/avances-por-validar": "task_alt",
+    "/alertas": "notifications_active",
+    "/programas": "account_tree",
+    "/aliados": "handshake",
+    "/usuarios": "group",
+    "/notificaciones": "notifications",
+  };
+  return iconos[href] ?? "circle";
+}
+
+function IconoMenu({ nombre, className = "h-5 w-5" }: { nombre: string; className?: string }) {
+  const trazoComun = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  let contenido: ReactNode;
+  switch (nombre) {
+    case "chevron_right":
+      contenido = <path d="m9 18 6-6-6-6" />;
+      break;
+    case "chevron_left":
+      contenido = <path d="m15 18-6-6 6-6" />;
+      break;
+    case "menu":
+      contenido = <path d="M4 6h16M4 12h16M4 18h16" />;
+      break;
+    case "close":
+      contenido = <path d="m6 6 12 12M18 6 6 18" />;
+      break;
+    case "smart_toy":
+      contenido = (
+        <>
+          <rect x="4" y="7" width="16" height="13" rx="3" />
+          <path d="M12 7V3m-2 0h4M8 12h.01M16 12h.01M9 16h6" />
+        </>
+      );
+      break;
+    case "dashboard":
+      contenido = (
+        <>
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </>
+      );
+      break;
+    case "folder":
+      contenido = <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />;
+      break;
+    case "campaign":
+      contenido = (
+        <>
+          <path d="M3 11v2a2 2 0 0 0 2 2h3l7 4V5l-7 4H5a2 2 0 0 0-2 2Z" />
+          <path d="M8 15v4a2 2 0 0 0 2 2h2M18 9a4 4 0 0 1 0 6M21 6a8 8 0 0 1 0 12" />
+        </>
+      );
+      break;
+    case "task_alt":
+      contenido = (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m8 12 2.5 2.5L16.5 8" />
+        </>
+      );
+      break;
+    case "notifications_active":
+    case "notifications":
+      contenido = (
+        <>
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M10 21h4" />
+        </>
+      );
+      break;
+    case "account_tree":
+      contenido = (
+        <>
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="5" cy="19" r="2" />
+          <circle cx="19" cy="19" r="2" />
+          <path d="M12 7v4M5 17v-3h14v3M12 11v3" />
+        </>
+      );
+      break;
+    case "handshake":
+      contenido = (
+        <>
+          <path d="m8 12 4 4 7-7-3-3-4 4-2-2-5 5 3 3" />
+          <path d="m6 7-3 3 5 5m10-7 3 3-5 5" />
+          <path d="m10 15 2 2m2-2 2 2" />
+        </>
+      );
+      break;
+    case "group":
+      contenido = (
+        <>
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2" />
+          <path d="M3 20v-2a6 6 0 0 1 12 0v2M14 14a5 5 0 0 1 7 4v2" />
+        </>
+      );
+      break;
+    default:
+      contenido = <circle cx="12" cy="12" r="8" />;
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className={className}
+      {...trazoComun}
+    >
+      {contenido}
+    </svg>
+  );
+}
 
 /** Layout autenticado: valida la sesión, muestra el menú según el rol y protege cada ruta. */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -16,6 +147,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [menuColapsado, setMenuColapsado] = useState(false);
+
+  const alternarMenuColapsado = () => {
+    setMenuColapsado((actual) => !actual);
+  };
 
   // Al recargar la página la sesión se recupera con el token de refresco (cookie HttpOnly).
   useEffect(() => {
@@ -42,23 +178,42 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={`flex ${ruta === "/asistente" ? "h-dvh overflow-hidden" : "min-h-screen"} flex-col md:flex-row`}>
-      <aside className="border-b border-slate-200 bg-emerald-950 text-emerald-50 md:w-64 md:shrink-0 md:border-b-0">
-        <div className="flex items-center justify-between px-5 py-4">
-          <div>
-            <p className="text-lg font-semibold">CI²DT²</p>
-            <p className="text-xs text-emerald-200">Universidad de Caldas</p>
+      <aside
+        className={`${menuColapsado ? "md:w-20" : "md:w-64"} fixed inset-y-0 left-0 z-40 hidden h-dvh flex-col border-r border-slate-200 bg-emerald-950 text-emerald-50 transition-[width] duration-300 ease-in-out md:flex`}
+        aria-label="Navegación lateral"
+      >
+        <div className={`flex h-[72px] items-center border-b border-emerald-900 ${menuColapsado ? "justify-center px-2" : "justify-between px-5"}`}>
+          <div className="flex min-w-0 items-center gap-3">
+            <Image
+              src={logoCi2dt2}
+              alt="Logo CI²DT²"
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 rounded-md object-contain"
+            />
+            {!menuColapsado && (
+              <div className="min-w-0">
+                <p className="text-lg font-semibold leading-tight">CI²DT²</p>
+                <p className="truncate text-xs text-emerald-200">Universidad de Caldas</p>
+              </div>
+            )}
           </div>
           <button
             type="button"
-            className="rounded p-2 text-sm md:hidden"
-            aria-expanded={menuAbierto}
+            className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 rounded-md p-2 text-emerald-100 hover:bg-emerald-900 md:block"
+            aria-expanded={!menuColapsado}
             aria-controls="menu-principal"
-            onClick={() => setMenuAbierto((v) => !v)}
+            aria-label={menuColapsado ? "Expandir menú principal" : "Colapsar menú principal"}
+            title={menuColapsado ? "Expandir menú" : "Colapsar menú"}
+            onClick={alternarMenuColapsado}
           >
-            Menú
+            <IconoMenu
+              nombre={menuColapsado ? "chevron_right" : "chevron_left"}
+              className="h-5 w-5"
+            />
           </button>
         </div>
-        <nav id="menu-principal" aria-label="Menú principal" className={`${menuAbierto ? "block" : "hidden"} px-3 pb-4 md:block`}>
+        <nav id="menu-principal" aria-label="Menú principal" className="block px-3 pb-16 pt-3">
           <ul className="flex flex-col gap-1">
             {menu.map((item) => {
               const activo = ruta === item.href || ruta.startsWith(`${item.href}/`);
@@ -68,9 +223,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                     href={item.href}
                     aria-current={activo ? "page" : undefined}
                     onClick={() => setMenuAbierto(false)}
-                    className={`block rounded-md px-3 py-2 text-sm ${activo ? "bg-emerald-800 font-medium" : "hover:bg-emerald-900"}`}
+                    title={menuColapsado ? item.etiqueta : undefined}
+                    className={`group relative flex rounded-md py-2 text-sm ${menuColapsado ? "justify-center px-2" : "items-center gap-3 px-3"} ${activo ? "bg-emerald-800 font-medium" : "hover:bg-emerald-900"}`}
                   >
-                    {item.etiqueta}
+                    <IconoMenu nombre={iconoMenu(item.href)} className="h-5 w-5 shrink-0" />
+                    {!menuColapsado && <span>{item.etiqueta}</span>}
+                    {menuColapsado && (
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute left-[calc(100%+8px)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs font-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                      >
+                        {item.etiqueta}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -79,7 +244,56 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
-      <div className={`flex min-w-0 flex-1 flex-col ${ruta === "/asistente" ? "min-h-0" : ""}`}>
+      <aside className="sticky top-0 z-40 border-b border-slate-200 bg-emerald-950 text-emerald-50 md:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <Image src={logoCi2dt2} alt="Logo CI²DT²" width={36} height={36} className="h-9 w-9 rounded-md object-contain" />
+            <div>
+              <p className="text-base font-semibold leading-tight">CI²DT²</p>
+              <p className="text-[10px] text-emerald-200">Universidad de Caldas</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="rounded-md p-2"
+            aria-expanded={menuAbierto}
+            aria-controls="menu-principal-movil"
+            aria-label={menuAbierto ? "Cerrar menú principal" : "Abrir menú principal"}
+            onClick={() => setMenuAbierto((v) => !v)}
+          >
+            <IconoMenu
+              nombre={menuAbierto ? "close" : "menu"}
+              className="h-6 w-6"
+            />
+          </button>
+        </div>
+        <nav
+          id="menu-principal-movil"
+          aria-label="Menú principal móvil"
+          className={`${menuAbierto ? "block" : "hidden"} border-t border-emerald-900 px-3 pb-4 pt-2`}
+        >
+          <ul className="flex flex-col gap-1">
+            {menu.map((item) => {
+              const activo = ruta === item.href || ruta.startsWith(`${item.href}/`);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={activo ? "page" : undefined}
+                    onClick={() => setMenuAbierto(false)}
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm ${activo ? "bg-emerald-800 font-medium" : "hover:bg-emerald-900"}`}
+                  >
+                    <IconoMenu nombre={iconoMenu(item.href)} className="h-5 w-5 shrink-0" />
+                    <span>{item.etiqueta}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
+
+      <div className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${menuColapsado ? "md:ml-20" : "md:ml-64"} ${ruta === "/asistente" ? "min-h-0" : ""}`}>
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-3">
           <p className="text-sm text-slate-500 first-letter:uppercase">{fechaLarga(new Date())}</p>
           <div className="flex items-center gap-4">
