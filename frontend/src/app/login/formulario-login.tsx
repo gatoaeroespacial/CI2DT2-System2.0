@@ -35,6 +35,24 @@ function IconoCheck() {
   );
 }
 
+function IconoAlerta({ tipo }: { tipo: "error" | "exito" }) {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      {tipo === "error" ? (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m9 9 6 6M15 9l-6 6" />
+        </>
+      ) : (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="m7.5 12 3 3 6-7" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export function FormularioLogin() {
   const router = useRouter();
   const parametros = useSearchParams();
@@ -73,13 +91,13 @@ export function FormularioLogin() {
     <form onSubmit={enviar} noValidate className="flex flex-col gap-5">
       {aviso && !error && (
         <div role="status" className="flex items-start gap-3 rounded-lg border border-secondary/20 bg-secondary/5 px-4 py-3 text-sm text-secondary">
-          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">check_circle</span>
+          <IconoAlerta tipo="exito" />
           <p>{aviso}</p>
         </div>
       )}
       {error && (
         <div role="alert" className="flex items-start gap-3 rounded-lg border border-error/20 bg-error-container/40 px-4 py-3 text-sm text-error">
-          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">error</span>
+          <IconoAlerta tipo="error" />
           <p>{error}</p>
         </div>
       )}
@@ -106,8 +124,9 @@ export function FormularioLogin() {
           {...register("email")}
         />
         {errors.email?.message && (
-          <p id="email-error" role="alert" className="text-xs text-error">
-            {errors.email.message}
+          <p id="email-error" role="alert" className="flex items-center gap-1.5 text-xs text-error">
+            <IconoAlerta tipo="error" />
+            <span>{errors.email.message}</span>
           </p>
         )}
       </div>
@@ -140,8 +159,9 @@ export function FormularioLogin() {
           </button>
         </div>
         {errors.password?.message && (
-          <p id="password-error" role="alert" className="text-xs text-error">
-            {errors.password.message}
+          <p id="password-error" role="alert" className="flex items-center gap-1.5 text-xs text-error">
+            <IconoAlerta tipo="error" />
+            <span>{errors.password.message}</span>
           </p>
         )}
       </div>
