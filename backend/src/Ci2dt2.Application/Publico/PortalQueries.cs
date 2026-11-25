@@ -78,7 +78,7 @@ public sealed class PortalQueries(IDbConnectionFactory conexiones, Convocatorias
             SELECT p.Id, p.Nombre, p.Descripcion,
                    (SELECT TOP 1 u.Nombres + ' ' + u.Apellidos FROM ProgramaIntegrantes pi JOIN Usuarios u ON u.Id = pi.UsuarioId
                     WHERE pi.ProgramaId = p.Id AND pi.Activo = 1 AND pi.RolEnPrograma = N'Coordinador'
-                      AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date))) AS Coordinador,
+                      AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))) AS Coordinador,
                    (SELECT COUNT(*) FROM Proyectos x WHERE x.ProgramaId = p.Id AND x.Activo = 1 AND x.EstadoId IN ({EstadosPublicos})) AS ProyectosPublicos
             FROM Programas p WHERE p.Activo = 1 ORDER BY p.Id
             """;
@@ -100,8 +100,8 @@ public sealed class PortalQueries(IDbConnectionFactory conexiones, Convocatorias
             SELECT u.Nombres + ' ' + u.Apellidos AS Nombre, u.CvLacUrl, u.Orcid, pi.RolEnPrograma
             FROM ProgramaIntegrantes pi JOIN Usuarios u ON u.Id = pi.UsuarioId
             WHERE pi.ProgramaId = @id AND pi.Activo = 1 AND u.Activo = 1
-              AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(SYSUTCDATETIME() AS date))
-              AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date))
+              AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))
+              AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))
             ORDER BY u.Apellidos, u.Nombres;
 
             SELECT a.Nombre FROM ProgramaAliados pa JOIN Aliados a ON a.Id = pa.AliadoId
@@ -172,7 +172,7 @@ public sealed class PortalQueries(IDbConnectionFactory conexiones, Convocatorias
             SELECT u.Nombres + ' ' + u.Apellidos AS Nombre, u.CvLacUrl, u.Orcid
             FROM ProyectoIntegrantes pi JOIN Usuarios u ON u.Id = pi.UsuarioId JOIN Proyectos p ON p.Id = pi.ProyectoId
             WHERE UPPER(p.Codigo) = UPPER(@codigo) AND pi.Activo = 1
-              AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date))
+              AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))
             ORDER BY CASE WHEN pi.RolEnProyecto = N'IP' THEN 0 ELSE 1 END, u.Apellidos, u.Nombres;
             """;
         using var conexion = conexiones.Crear();

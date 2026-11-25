@@ -155,7 +155,7 @@ public class PermisosTests(ApiFactory api)
         var integrante = await api.CrearUsuarioAsync(ApiFactory.Unico("integ"), roles: [I]);
         var ajeno = await api.CrearUsuarioAsync(ApiFactory.Unico("ajeno"), roles: [I]);
         var retirado = await api.CrearUsuarioAsync(ApiFactory.Unico("retir"), roles: [I]);
-        var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5));
 
         var (proyectoA, proyectoB) = await api.EnBaseDatosAsync(async db =>
         {

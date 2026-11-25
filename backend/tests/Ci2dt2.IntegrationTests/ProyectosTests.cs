@@ -220,7 +220,7 @@ public class ProyectosTests(ApiFactory api)
 
         // Retiro con fecha de fin: se conserva el historial.
         Assert.Equal(HttpStatusCode.NoContent, (await ip.PutAsJsonAsync($"/api/v1/proyectos/{id}/integrantes/{co.Id}",
-            new { fechaFin = DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd") })).StatusCode);
+            new { fechaFin = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)).ToString("yyyy-MM-dd") })).StatusCode);
         equipo = await ip.GetFromJsonAsync<IntegranteProyectoDto[]>($"/api/v1/proyectos/{id}/integrantes");
         Assert.False(Assert.Single(equipo!, e => e.UsuarioId == coinvestigador.Id).Vigente);
     }
@@ -350,7 +350,7 @@ public class ProyectosTests(ApiFactory api)
         var (programaId, _, investigador) = await EscenarioAsync();
         var ip = await api.ClienteDeAsync(investigador);
         var id = await ip.CrearPropuestaAsync(programaId);
-        var limite = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(10);
+        var limite = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)).AddDays(10);
         await api.EnBaseDatosAsync(async db =>
         {
             var cronograma = new Cronograma { Nombre = "Cronograma", ProyectoId = id };

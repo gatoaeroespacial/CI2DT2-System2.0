@@ -36,7 +36,7 @@ public static class Sprint2Datos
                 UsuarioId = usuarioId,
                 ProgramaId = programaId,
                 RolEnPrograma = rol,
-                FechaInicio = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-1),
+                FechaInicio = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)).AddYears(-1),
                 FechaFin = fin,
             });
             return db.SaveChangesAsync();

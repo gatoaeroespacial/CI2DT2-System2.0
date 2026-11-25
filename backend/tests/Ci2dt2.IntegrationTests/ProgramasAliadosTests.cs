@@ -15,7 +15,7 @@ public sealed record PaginaAliadosDto(AliadoDto[] Items, int Total);
 [Collection(ColeccionApi.Nombre)]
 public class ProgramasAliadosTests(ApiFactory api)
 {
-    private static string Hoy(int dias = 0) => DateOnly.FromDateTime(DateTime.UtcNow).AddDays(dias).ToString("yyyy-MM-dd");
+    private static string Hoy(int dias = 0) => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)).AddDays(dias).ToString("yyyy-MM-dd");
 
     [Fact]
     public async Task HU06_CA1_el_director_edita_nombre_y_descripcion_y_el_coordinador_no()

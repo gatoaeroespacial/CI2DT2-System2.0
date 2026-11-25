@@ -14,8 +14,8 @@ public sealed class ProgramasQueries(IDbConnectionFactory conexiones)
     }
 
     private const string Vigente =
-        "pi.Activo = 1 AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(SYSUTCDATETIME() AS date)) " +
-        "AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date))";
+        "pi.Activo = 1 AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date)) " +
+        "AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))";
 
     public async Task<IReadOnlyList<ProgramaResumen>> ListarAsync(CancellationToken ct = default)
     {

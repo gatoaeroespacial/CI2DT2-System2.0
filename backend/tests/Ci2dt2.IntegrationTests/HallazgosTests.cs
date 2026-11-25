@@ -77,7 +77,7 @@ public class HallazgosTests(ApiFactory api)
         var e = await api.EscenarioAsync();
         var id = await e.PropuestaCompletaAsync();
         var cronograma = await api.ConCronogramaAsync(id, 6);
-        var fecha = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(20));
+        var fecha = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)).AddDays(20);
         var hito = await api.HitoAsync(cronograma, e.Ip.Id, fecha);
 
         var nueva = fecha.AddDays(30);

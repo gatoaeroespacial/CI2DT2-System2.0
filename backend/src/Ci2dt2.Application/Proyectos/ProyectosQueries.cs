@@ -69,8 +69,8 @@ public sealed class ProyectosQueries(IDbConnectionFactory conexiones)
         EXISTS (SELECT 1 FROM ProgramaIntegrantes pi
                 WHERE pi.ProgramaId = p.ProgramaId AND pi.UsuarioId = @usuarioId AND pi.Activo = 1
                   AND pi.RolEnPrograma = N'Coordinador'
-                  AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(SYSUTCDATETIME() AS date))
-                  AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date)))
+                  AND (pi.FechaInicio IS NULL OR pi.FechaInicio <= CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date))
+                  AND (pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date)))
         """;
 
     private const string EsOFueIntegrante = """
@@ -229,7 +229,7 @@ public sealed class ProyectosQueries(IDbConnectionFactory conexiones)
         const string sql = """
             SELECT pi.Id, pi.UsuarioId, u.Nombres + ' ' + u.Apellidos AS Nombre, u.Email, pi.RolEnProyecto,
                    CAST(pi.FechaInicio AS datetime2) AS FechaInicio, CAST(pi.FechaFin AS datetime2) AS FechaFin,
-                   CAST(CASE WHEN pi.FechaFin IS NULL OR pi.FechaFin > CAST(SYSUTCDATETIME() AS date) THEN 1 ELSE 0 END AS bit) AS Vigente,
+                   CAST(CASE WHEN pi.FechaFin IS NULL OR pi.FechaFin > CAST(DATEADD(HOUR, -5, SYSUTCDATETIME()) AS date) THEN 1 ELSE 0 END AS bit) AS Vigente,
                    u.CvLacUrl, u.Orcid
             FROM ProyectoIntegrantes pi JOIN Usuarios u ON u.Id = pi.UsuarioId
             WHERE pi.ProyectoId = @proyectoId AND pi.Activo = 1
