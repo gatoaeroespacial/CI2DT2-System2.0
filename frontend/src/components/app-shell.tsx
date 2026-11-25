@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     // La recarga completa descarta el estado en memoria (token y sesión), así el botón
     // "atrás" no muestra datos protegidos. No se limpia el store antes para que el guard
     // no lo tome como una sesión expirada.
-    window.location.replace("/login");
+    window.location.replace("/");
   };
 
   const permitidos = rolesDeRuta(ruta);
