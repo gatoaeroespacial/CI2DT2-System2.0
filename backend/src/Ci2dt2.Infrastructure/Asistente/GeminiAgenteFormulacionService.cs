@@ -153,7 +153,8 @@ public sealed class GeminiAgenteFormulacionService(
             
             REGLAS DE REDACCIÓN:
             - Usa formato Markdown estructurado (títulos nivel 3 `###`, viñetas, tablas comparativas si aplica).
-            - Sé exhaustivo, fundamentado y cuantitativo cuando corresponda.
+            - Sé fundamentado y cuantitativo cuando corresponda, pero conciso: escribe solo el contenido de la sección pedida, sin repetir otras secciones ni añadir notas para el investigador.
+            - Extensión según la sección: título, entre 1 y 3 opciones de máximo 25 palabras cada una; resumen, máximo 250 palabras; objetivos, un objetivo general y de 3 a 5 específicos; las demás secciones, entre 300 y 700 palabras.
             - Si estás redactando 'Objetivos': formula un Objetivo General medible y objetivos específicos secuenciales (diagnóstico, desarrollo, validación).
             - Si estás redactando 'Metodología': define fases claras, actividades, técnicas o instrumentos y criterios de validación.
             - Asegura coherencia absoluta con las secciones previas ya redactadas.
@@ -225,7 +226,8 @@ public sealed class GeminiAgenteFormulacionService(
             try
             {
                 using var chunkDoc = JsonDocument.Parse(jsonChunk);
-                textoGenerado = ExtraerTextoRespuesta(chunkDoc);
+                // Sin Trim: los espacios al borde de cada fragmento separan las palabras al unirlos.
+                textoGenerado = ExtraerTextoRespuesta(chunkDoc, recortar: false);
             }
             catch (JsonException)
             {
@@ -332,7 +334,7 @@ public sealed class GeminiAgenteFormulacionService(
         }
     }
 
-    private static string ExtraerTextoRespuesta(JsonDocument doc)
+    private static string ExtraerTextoRespuesta(JsonDocument doc, bool recortar = true)
     {
         var root = doc.RootElement;
         if (!root.TryGetProperty("candidates", out var candidates) ||
@@ -349,12 +351,14 @@ public sealed class GeminiAgenteFormulacionService(
         var sb = new StringBuilder();
         foreach (var parte in parts.EnumerateArray())
         {
+            if (parte.TryGetProperty("thought", out var pensamiento) && pensamiento.ValueKind == JsonValueKind.True)
+                continue;
             if (parte.TryGetProperty("text", out var textElem) && textElem.ValueKind == JsonValueKind.String)
             {
                 sb.Append(textElem.GetString());
             }
         }
 
-        return sb.ToString().Trim();
+        return recortar ? sb.ToString().Trim() : sb.ToString();
     }
 }

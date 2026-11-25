@@ -149,7 +149,7 @@ public sealed class AuthService(
     private async Task<SesionEmitida> EmitirSesionAsync(Usuario usuario, string? ip, CancellationToken ct)
     {
         var roles = usuario.Roles.Select(r => r.Rol!.Nombre).OrderBy(r => r).ToList();
-        var hoy = DateOnly.FromDateTime(Ahora);
+        var hoy = FechaLocal.Hoy(reloj);
         var programas = await db.ProgramaIntegrantes
             .Where(pi => pi.UsuarioId == usuario.Id && pi.Activo
                 && (pi.FechaInicio == null || pi.FechaInicio <= hoy)

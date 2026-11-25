@@ -83,7 +83,9 @@ public sealed class GeminiAnswerGenerator(
             generationConfig = new
             {
                 temperature = 0.6,
-                maxOutputTokens = 1200,
+                // Los modelos con razonamiento descuentan del mismo límite los tokens de "pensamiento";
+                // con 1200 las respuestas largas (listas por programa) se cortaban a la mitad.
+                maxOutputTokens = 4096,
             },
         });
 
@@ -154,13 +156,22 @@ public sealed class GeminiAnswerGenerator(
             throw new AsistenteProveedorException(
                 "Gemini no generó una respuesta utilizable. Puede que la solicitud haya sido bloqueada por seguridad o que el proveedor esté temporalmente limitado.");
 
-        var respuesta = parts.EnumerateArray()
+        // La respuesta puede venir en varias partes: se unen todas las de texto (sin las de razonamiento).
+        var respuesta = string.Concat(parts.EnumerateArray()
             .Where(parte => parte.ValueKind == JsonValueKind.Object &&
                             parte.TryGetProperty("text", out var texto) &&
-                            texto.ValueKind == JsonValueKind.String)
-            .Select(parte => parte.GetProperty("text").GetString())
-            .FirstOrDefault(texto => !string.IsNullOrWhiteSpace(texto));
-        return respuesta?.Trim()
-            ?? throw new AsistenteProveedorException("Gemini devolvió una respuesta vacía. Inténtalo de nuevo con una pregunta más concreta.");
+                            texto.ValueKind == JsonValueKind.String &&
+                            !(parte.TryGetProperty("thought", out var pensamiento) && pensamiento.ValueKind == JsonValueKind.True))
+            .Select(parte => parte.GetProperty("text").GetString())).Trim();
+        if (string.IsNullOrWhiteSpace(respuesta))
+            throw new AsistenteProveedorException("Gemini devolvió una respuesta vacía. Inténtalo de nuevo con una pregunta más concreta.");
+
+        if (candidates[0].TryGetProperty("finishReason", out var fin) && fin.ValueKind == JsonValueKind.String
+            && fin.GetString() == "MAX_TOKENS")
+        {
+            logger.LogWarning("La respuesta de Gemini alcanzó el límite de tokens.");
+            respuesta += "\n\n_(La respuesta se recortó por longitud. Pide el resto o haz una pregunta más concreta.)_";
+        }
+        return respuesta;
     }
 }

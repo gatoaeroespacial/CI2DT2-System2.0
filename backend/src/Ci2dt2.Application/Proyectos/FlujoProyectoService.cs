@@ -22,6 +22,8 @@ public static class MaquinaEstadosProyecto
         (ValoresProyecto.Presentado, ValoresProyecto.Aprobado),
         (ValoresProyecto.Presentado, ValoresProyecto.NoAprobado),
         (ValoresProyecto.Aprobado, ValoresProyecto.EnEjecucion),
+        (ValoresProyecto.EnEjecucion, ValoresProyecto.Suspendido),
+        (ValoresProyecto.Suspendido, ValoresProyecto.EnEjecucion),
     ];
 
     public const string MensajeNoPermitida = "Transición de estado no permitida.";
@@ -43,6 +45,8 @@ public static class DecisionesRevision
     public const string Aprobado = "Aprobado";
     public const string NoAprobado = "No aprobado";
     public const string IniciaEjecucion = "Inicia ejecución";
+    public const string Suspende = "Suspende";
+    public const string Reanuda = "Reanuda";
 
     public const string EtapaCoordinador = "Coordinador";
     public const string EtapaDirector = "Director";
@@ -56,6 +60,9 @@ public sealed record AprobacionRequest(bool Aprobado, decimal? PresupuestoAproba
 
 public sealed record IniciarEjecucionRequest(DateOnly? FechaInicio);
 
+/// <summary>Suspensión o reanudación de un proyecto en ejecución; la justificación es obligatoria.</summary>
+public sealed record CambioEjecucionRequest(string? Observaciones);
+
 public sealed record RequisitoEnvio(string Descripcion, bool Cumple);
 
 /// <summary>Acciones del flujo disponibles para el usuario en la ficha del proyecto.</summary>
@@ -68,7 +75,9 @@ public sealed record FlujoProyecto(
     bool PuedeIniciarEjecucion,
     bool PuedeGestionarHitos,
     bool PuedeRegistrarAvances,
-    bool PuedeGestionarPostulaciones);
+    bool PuedeGestionarPostulaciones,
+    bool PuedeSuspender = false,
+    bool PuedeReanudar = false);
 
 public sealed class RevisionRequestValidator : AbstractValidator<RevisionRequest>
 {
@@ -95,6 +104,17 @@ public sealed class AprobacionRequestValidator : AbstractValidator<AprobacionReq
     }
 }
 
+public sealed class CambioEjecucionRequestValidator : AbstractValidator<CambioEjecucionRequest>
+{
+    public CambioEjecucionRequestValidator()
+    {
+        RuleFor(x => x.Observaciones)
+            .Must(o => o is not null && o.Trim().Length >= DecisionesRevision.MinimoObservaciones)
+            .WithMessage("Escriba la justificación (al menos 20 caracteres).");
+        RuleFor(x => x.Observaciones).MaximumLength(4000);
+    }
+}
+
 public sealed class IniciarEjecucionRequestValidator : AbstractValidator<IniciarEjecucionRequest>
 {
     public IniciarEjecucionRequestValidator()
@@ -110,7 +130,7 @@ public sealed class IniciarEjecucionRequestValidator : AbstractValidator<Iniciar
 public sealed class FlujoProyectoService(IApplicationDbContext db, AccesoRecursos acceso, Notificador notificador, TimeProvider reloj)
 {
     private DateTime Ahora => reloj.GetUtcNow().UtcDateTime;
-    private DateOnly Hoy => DateOnly.FromDateTime(Ahora);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     // ----- HU-11 -----
 
@@ -326,6 +346,31 @@ public sealed class FlujoProyectoService(IApplicationDbContext db, AccesoRecurso
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Suspende un proyecto en ejecución o lo reanuda. Lo decide el Director (o el Administrador),
+    /// con justificación; queda en el historial de revisiones y se notifica al equipo vigente.
+    /// </summary>
+    public async Task CambiarEjecucionAsync(int proyectoId, bool suspender, CambioEjecucionRequest r, UsuarioAutenticado actor, CancellationToken ct = default)
+    {
+        EsDirectivoAval(actor);
+        var proyecto = await CargarAsync(proyectoId, ct);
+        var estadoNuevo = suspender ? ValoresProyecto.Suspendido : ValoresProyecto.EnEjecucion;
+        MaquinaEstadosProyecto.Validar(proyecto.EstadoId, estadoNuevo);
+
+        var observaciones = r.Observaciones!.Trim();
+        Registrar(proyecto, actor.Id, DecisionesRevision.EtapaDirector,
+            suspender ? DecisionesRevision.Suspende : DecisionesRevision.Reanuda, estadoNuevo, observaciones);
+        proyecto.EstadoId = estadoNuevo;
+        foreach (var u in await EquipoVigenteAsync(proyectoId, ct))
+            notificador.Notificar(u, suspender ? "ProyectoSuspendido" : "ProyectoReanudado",
+                $"Proyecto {proyecto.Codigo} {(suspender ? "suspendido" : "reanudado")}",
+                suspender
+                    ? $"El proyecto \"{proyecto.Titulo}\" fue suspendido. Motivo: {observaciones}"
+                    : $"El proyecto \"{proyecto.Titulo}\" retomó su ejecución. Observaciones: {observaciones}",
+                "Proyecto", proyecto.Id);
+        await db.SaveChangesAsync(ct);
+    }
+
     // ----- Permisos de la ficha -----
 
     public async Task<FlujoProyecto> FlujoAsync(int proyectoId, UsuarioAutenticado actor, CancellationToken ct = default)
@@ -351,7 +396,9 @@ public sealed class FlujoProyectoService(IApplicationDbContext db, AccesoRecurso
             esAvalador && proyecto.EstadoId == ValoresProyecto.Aprobado,
             gestor && tieneCronograma && !proyecto.Estado!.EsFinal,
             proyecto.EstadoId == ValoresProyecto.EnEjecucion && await PuedeRegistrarAvancesAsync(proyectoId, actor, ct),
-            gestor && !proyecto.Estado!.EsFinal);
+            gestor && !proyecto.Estado!.EsFinal,
+            esAvalador && proyecto.EstadoId == ValoresProyecto.EnEjecucion,
+            esAvalador && proyecto.EstadoId == ValoresProyecto.Suspendido);
     }
 
     /// <summary>"Registrar avances": Admin y Director; Coordinador de su programa; integrantes vigentes (HU-09 CA-3).</summary>

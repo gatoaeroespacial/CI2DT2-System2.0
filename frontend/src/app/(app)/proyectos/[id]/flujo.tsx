@@ -7,7 +7,7 @@ import { ErrorFormulario } from "@/components/controles";
 import { Boton, Campo, claseEntrada } from "@/components/ui";
 import { api, json } from "@/lib/api";
 import { hoyIso } from "@/lib/formato";
-import type { Flujo, ProyectoDetalle } from "./tipos";
+import type { Flujo, Permisos, ProyectoDetalle } from "./tipos";
 
 const MINIMO_OBSERVACIONES = 20;
 
@@ -19,15 +19,17 @@ const textoDecision: Record<string, string> = {
 
 /**
  * Acciones del ciclo de vida en la ficha: lista de verificación y envío a revisión (HU-11),
- * decisiones de revisión y aval (HU-11) y aprobación e inicio de ejecución (HU-12).
+ * decisiones de revisión y aval (HU-11), aprobación e inicio de ejecución (HU-12) y suspensión o
+ * reanudación de un proyecto en ejecución.
  */
-export function PanelFlujo({ proyecto, flujo }: { proyecto: ProyectoDetalle; flujo: Flujo }) {
+export function PanelFlujo({ proyecto, flujo, permisos }: { proyecto: ProyectoDetalle; flujo: Flujo; permisos: Permisos }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string>();
   const [enviando, setEnviando] = useState(false);
   const [observaciones, setObservaciones] = useState("");
   const [presupuesto, setPresupuesto] = useState("");
   const [fechaInicio, setFechaInicio] = useState(hoyIso());
+  const [justificacion, setJustificacion] = useState("");
 
   const ejecutar = async (accion: () => Promise<unknown>, exito: string) => {
     setError(undefined);
@@ -36,6 +38,7 @@ export function PanelFlujo({ proyecto, flujo }: { proyecto: ProyectoDetalle; flu
       await accion();
       toast.success(exito);
       setObservaciones("");
+      setJustificacion("");
       await queryClient.invalidateQueries({ queryKey: ["proyecto", String(proyecto.id)] });
       await queryClient.invalidateQueries({ queryKey: ["proyectos"] });
     } catch (e) {
@@ -47,7 +50,8 @@ export function PanelFlujo({ proyecto, flujo }: { proyecto: ProyectoDetalle; flu
 
   const pendientes = flujo.requisitos.filter((r) => !r.cumple);
   const hayAcciones = flujo.puedeEnviarRevision || flujo.decisionesDisponibles.length > 0
-    || flujo.puedeRegistrarAprobacion || flujo.puedeIniciarEjecucion || flujo.etapaRevision !== null;
+    || flujo.puedeRegistrarAprobacion || flujo.puedeIniciarEjecucion || flujo.etapaRevision !== null
+    || flujo.puedeSuspender || flujo.puedeReanudar;
   if (!hayAcciones) return null;
 
   return (
@@ -57,7 +61,10 @@ export function PanelFlujo({ proyecto, flujo }: { proyecto: ProyectoDetalle; flu
       {flujo.etapaRevision && (
         <p className="text-sm text-slate-800">
           La propuesta está <strong>en revisión</strong>, etapa <strong>{flujo.etapaRevision}</strong>.
-          {flujo.decisionesDisponibles.length === 0 && " Mientras tanto no puede editarse."}
+          {flujo.decisionesDisponibles.length === 0
+            && (permisos.puedeEditar
+              ? " Mientras tanto el IP no puede editarla."
+              : " Mientras tanto no puede editarse.")}
         </p>
       )}
 
@@ -148,6 +155,32 @@ export function PanelFlujo({ proyecto, flujo }: { proyecto: ProyectoDetalle; flu
             <Boton disabled={enviando || !fechaInicio}
               onClick={() => ejecutar(() => api(`/proyectos/${proyecto.id}/iniciar-ejecucion`, json("POST", { fechaInicio })), "Proyecto en ejecución")}>
               Iniciar ejecución
+            </Boton>
+          </div>
+        </div>
+      )}
+
+      {(flujo.puedeSuspender || flujo.puedeReanudar) && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">
+            {flujo.puedeSuspender ? "Suspender la ejecución" : "Reanudar la ejecución"}
+          </h2>
+          <Campo id="justificacion-ejecucion"
+            etiqueta={`${flujo.puedeSuspender ? "Motivo de la suspensión" : "Observaciones de la reanudación"} (mínimo ${MINIMO_OBSERVACIONES} caracteres)`}>
+            <textarea id="justificacion-ejecucion" rows={2} className={claseEntrada} value={justificacion}
+              onChange={(e) => setJustificacion(e.target.value)} />
+          </Campo>
+          <div>
+            <Boton
+              variante={flujo.puedeSuspender ? "peligro" : "primario"}
+              disabled={enviando || justificacion.trim().length < MINIMO_OBSERVACIONES}
+              onClick={() => ejecutar(
+                () => api(`/proyectos/${proyecto.id}/${flujo.puedeSuspender ? "suspension" : "reanudacion"}`,
+                  json("POST", { observaciones: justificacion.trim() })),
+                flujo.puedeSuspender ? "Proyecto suspendido" : "Proyecto reanudado",
+              )}
+            >
+              {flujo.puedeSuspender ? "Suspender proyecto" : "Reanudar ejecución"}
             </Boton>
           </div>
         </div>

@@ -77,7 +77,7 @@ public sealed class TableroQueries(IDbConnectionFactory conexiones, TimeProvider
                   (SELECT TOP 1 v.RolValidador FROM AvanceValidaciones v WHERE v.AvanceId = a.Id AND v.Activo = 1 ORDER BY v.Id DESC) = N'IP'))
             GROUP BY pr.Id, pr.Nombre ORDER BY pr.Id;
             """;
-        var hoy = DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime.AddHours(-5)).ToDateTime(TimeOnly.MinValue);
+        var hoy = FechaLocal.Hoy(reloj).ToDateTime(TimeOnly.MinValue);
         using var conexion = conexiones.Crear();
         using var r = await conexion.QueryMultipleAsync(new CommandDefinition(sql, new { anio, hoy }, cancellationToken: ct));
         var estados = await r.ReadSingleAsync<FilaEstados>();

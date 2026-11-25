@@ -36,6 +36,18 @@ public sealed class HitoDetalle
     public string Estado { get; init; } = "";
     public DateTime? FechaCompletado { get; init; }
     public int AvancesVinculados { get; init; }
+    public IReadOnlyList<ReprogramacionHito> Reprogramaciones { get; set; } = [];
+}
+
+/// <summary>Reprogramación de un hito (HU-17 CA-5), tomada del registro de auditoría.</summary>
+public sealed class ReprogramacionHito
+{
+    public int HitoId { get; init; }
+    public DateTime Fecha { get; init; }
+    public string? Usuario { get; init; }
+    public string? FechaAnterior { get; init; }
+    public string? FechaNueva { get; init; }
+    public string? Justificacion { get; init; }
 }
 
 public sealed class HitoRequestValidator : AbstractValidator<HitoRequest>
@@ -61,12 +73,12 @@ public sealed class HitosService(
     TimeProvider reloj)
 {
     public const int AlertarDiasPorDefecto = 7;
-    private DateOnly Hoy => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     public async Task<IReadOnlyList<HitoDetalle>> ListarAsync(int proyectoId, CancellationToken ct = default)
     {
         using var conexion = conexiones.Crear();
-        return (await conexion.QueryAsync<HitoDetalle>(new CommandDefinition("""
+        var hitos = (await conexion.QueryAsync<HitoDetalle>(new CommandDefinition("""
             SELECT h.Id, h.TipoHitoId, th.Nombre AS TipoHito, h.Titulo, CAST(h.FechaLimite AS datetime2) AS FechaLimite,
                    h.AlertarDias, h.ResponsableId, u.Nombres + ' ' + u.Apellidos AS Responsable, h.Estado,
                    CAST(h.FechaCompletado AS datetime2) AS FechaCompletado,
@@ -78,6 +90,23 @@ public sealed class HitosService(
             WHERE c.ProyectoId = @proyectoId AND c.Activo = 1 AND h.Activo = 1
             ORDER BY h.FechaLimite, h.Orden, h.Id
             """, new { proyectoId }, cancellationToken: ct))).ToList();
+        if (hitos.Count == 0)
+            return hitos;
+
+        // Historial de reprogramaciones con su justificación (queda en LogActividades al reprogramar).
+        var reprogramaciones = (await conexion.QueryAsync<ReprogramacionHito>(new CommandDefinition("""
+            SELECT TRY_CAST(l.RecursoId AS int) AS HitoId, l.FechaUtc AS Fecha, u.Nombres + ' ' + u.Apellidos AS Usuario,
+                   JSON_VALUE(l.ValoresAnteriores, '$.fechaLimite') AS FechaAnterior,
+                   JSON_VALUE(l.ValoresNuevos, '$.fechaLimite') AS FechaNueva,
+                   JSON_VALUE(l.ValoresNuevos, '$.justificacion') AS Justificacion
+            FROM LogActividades l
+            LEFT JOIN Usuarios u ON u.Id = l.UsuarioId
+            WHERE l.Recurso = N'hitos' AND l.Accion = N'REPROGRAMA' AND l.RecursoId IN @ids
+            ORDER BY l.FechaUtc
+            """, new { ids = hitos.Select(h => h.Id.ToString()).ToArray() }, cancellationToken: ct))).ToList();
+        foreach (var hito in hitos)
+            hito.Reprogramaciones = reprogramaciones.Where(r => r.HitoId == hito.Id).ToList();
+        return hitos;
     }
 
     public async Task<HitoGuardado> CrearAsync(int proyectoId, HitoRequest r, UsuarioAutenticado actor, CancellationToken ct = default)
@@ -237,7 +266,7 @@ public sealed class AlertasService(IApplicationDbContext db, IDbConnectionFactor
     public const string TipoVencido = "HitoVencido";
 
     /// <summary>Fecha de hoy en Colombia (UTC−5, sin horario de verano).</summary>
-    public DateOnly HoyColombia() => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime.AddHours(-5));
+    public DateOnly HoyColombia() => FechaLocal.Hoy(reloj);
 
     public async Task<ResultadoAlertas> EjecutarAsync(DateOnly hoy, CancellationToken ct = default)
     {

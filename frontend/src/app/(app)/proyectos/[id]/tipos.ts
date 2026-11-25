@@ -67,6 +67,8 @@ export type Flujo = {
   puedeGestionarHitos: boolean;
   puedeRegistrarAvances: boolean;
   puedeGestionarPostulaciones: boolean;
+  puedeSuspender: boolean;
+  puedeReanudar: boolean;
 };
 
 export type Ficha = { proyecto: ProyectoDetalle; permisos: Permisos; flujo: Flujo };

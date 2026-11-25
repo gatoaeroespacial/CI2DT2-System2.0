@@ -12,7 +12,7 @@ public sealed record PermisosProyecto(bool PuedeEditar, bool PuedeCambiarIp, boo
 /// <summary>Comandos de proyectos (HU-08), equipo (HU-09) y financiación (HU-10).</summary>
 public sealed class ProyectosService(IApplicationDbContext db, AccesoRecursos acceso, Notificador notificador, TimeProvider reloj)
 {
-    private DateOnly Hoy => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     // ----- HU-08 -----
 

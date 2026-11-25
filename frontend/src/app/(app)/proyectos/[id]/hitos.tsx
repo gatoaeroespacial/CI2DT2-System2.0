@@ -8,7 +8,7 @@ import { Boton, Campo, Cargando, claseEntrada, EstadoError, EstadoVacio } from "
 import { api, json } from "@/lib/api";
 import { useAuth } from "@/lib/auth-store";
 import { useCatalogos } from "@/lib/consultas";
-import { aFechaInput, fechaCorta } from "@/lib/formato";
+import { aFechaInput, fechaCorta, fechaHora } from "@/lib/formato";
 import type { ProyectoDetalle } from "./tipos";
 
 type Hito = {
@@ -23,6 +23,7 @@ type Hito = {
   estado: string;
   fechaCompletado: string | null;
   avancesVinculados: number;
+  reprogramaciones: { fecha: string; usuario: string | null; fechaAnterior: string | null; fechaNueva: string | null; justificacion: string | null }[];
 };
 
 type Integrante = { usuarioId: number; nombre: string; rolEnProyecto: string; vigente: boolean };
@@ -84,6 +85,21 @@ export function Hitos({ proyecto, puedeGestionar }: { proyecto: ProyectoDetalle;
                       {h.avancesVinculados > 0 ? ` · ${h.avancesVinculados} avance(s) de evidencia` : ""}
                       {` · Alerta ${h.alertarDias ?? 7} días antes`}
                     </p>
+                    {h.reprogramaciones.length > 0 && (
+                      <details className="mt-1 text-xs text-slate-700">
+                        <summary className="cursor-pointer text-slate-600">Reprogramado {h.reprogramaciones.length} vez(es)</summary>
+                        <ul className="mt-1 flex flex-col gap-1 border-l-2 border-slate-200 pl-3">
+                          {h.reprogramaciones.map((r) => (
+                            <li key={r.fecha}>
+                              {fechaHora(r.fecha)}: del {r.fechaAnterior ? fechaCorta(r.fechaAnterior) : "—"} al{" "}
+                              {r.fechaNueva ? fechaCorta(r.fechaNueva) : "—"}
+                              {r.usuario ? ` · ${r.usuario}` : ""}
+                              {r.justificacion ? ` · ${r.justificacion}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
                   </div>
                   {activo && (
                     <div className="flex flex-wrap gap-2 text-sm">

@@ -16,7 +16,7 @@ public sealed record UsuarioAutenticado(int Id, IReadOnlyCollection<string> Role
 /// </summary>
 public sealed class AccesoRecursos(IApplicationDbContext db, TimeProvider reloj)
 {
-    private DateOnly Hoy => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     /// <summary>Coordinador con vinculación vigente (FechaFin nula o futura) al programa.</summary>
     public Task<bool> EsCoordinadorVigenteAsync(int usuarioId, int programaId, CancellationToken ct = default)

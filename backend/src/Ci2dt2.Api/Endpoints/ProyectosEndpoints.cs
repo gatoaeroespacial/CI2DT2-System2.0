@@ -217,6 +217,28 @@ public sealed class ProyectosEndpoints : IEndpointModule
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
 
+        grupo.MapPost("/{id:int}/suspension", async (int id, CambioEjecucionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.CambiarEjecucionAsync(id, suspender: true, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<CambioEjecucionRequest>()
+            .WithSummary("Suspende un proyecto en ejecución, con justificación")
+            .RequireAuthorization(Politicas.AvalarAprobarProyectos)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
+        grupo.MapPost("/{id:int}/reanudacion", async (int id, CambioEjecucionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.CambiarEjecucionAsync(id, suspender: false, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<CambioEjecucionRequest>()
+            .WithSummary("Reanuda la ejecución de un proyecto suspendido, con observaciones")
+            .RequireAuthorization(Politicas.AvalarAprobarProyectos)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
         // ----- HU-16: postulaciones -----
         grupo.MapGet("/{id:int}/postulaciones", async (int id, PostulacionesService servicio, AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
                 await acceso.PuedeVerProyectoAsync(http.User.UsuarioAutenticado(), id, ct)

@@ -288,7 +288,7 @@ public sealed class AvancesService(
         if (!actor.Roles.Any(r => Politicas.Matriz[Politicas.ValidarAvances].Contains(r)))
             throw new AccesoDenegadoException();
 
-        var hoy = DateOnly.FromDateTime(Ahora).ToDateTime(TimeOnly.MinValue);
+        var hoy = FechaLocal.Hoy(reloj).ToDateTime(TimeOnly.MinValue);
         // Última validación del avance: si fue del IP, el avance sigue pendiente para el Coordinador.
         const string ultimaRol = "(SELECT TOP 1 v.RolValidador FROM AvanceValidaciones v WHERE v.AvanceId = a.Id AND v.Activo = 1 ORDER BY v.Id DESC)";
         var condiciones = new List<string>();
@@ -302,7 +302,8 @@ public sealed class AvancesService(
                              AND (g.FechaInicio IS NULL OR g.FechaInicio <= @hoy) AND (g.FechaFin IS NULL OR g.FechaFin > @hoy)))
                 """);
         if (actor.Tiene(Roles.Investigador))
-            condiciones.Add("(a.EstadoValidacion = N'Pendiente' AND p.InvestigadorPrincipalId = @usuarioId)");
+            // El IP valida los avances de su equipo; los suyos pasan directo al Coordinador.
+            condiciones.Add("(a.EstadoValidacion = N'Pendiente' AND p.InvestigadorPrincipalId = @usuarioId AND a.AutorId <> @usuarioId)");
         if (condiciones.Count == 0)
             return new BandejaAvances(0, []);
 
@@ -340,6 +341,8 @@ public sealed class AvancesService(
             throw new ReglaNegocioException("El avance fue rechazado; el autor debe corregirlo antes de una nueva validación.");
         if (avance.EstadoValidacion == EstadosAvance.Validado && rol == EstadosAvance.RolIp)
             throw new ReglaNegocioException("El avance ya fue validado.");
+        if (rol == EstadosAvance.RolIp && avance.AutorId == actor.Id)
+            throw new ReglaNegocioException("El IP no puede validar su propio avance; lo valida el Coordinador del programa o el Director.");
         if (avance.EstadoValidacion == EstadosAvance.Validado && rol != EstadosAvance.RolIp
             && await UltimoRolAsync(avanceId, ct) != EstadosAvance.RolIp)
             throw new ReglaNegocioException("El avance ya fue validado.");

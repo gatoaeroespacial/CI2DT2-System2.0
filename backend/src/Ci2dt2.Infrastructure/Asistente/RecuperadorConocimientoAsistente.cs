@@ -213,6 +213,43 @@ public sealed class RecuperadorConocimientoAsistente(
             }
         }
 
+        documentos.AddRange(await CrearResumenIntegrantesAsync(ct));
+        return documentos;
+    }
+
+    /// <summary>
+    /// Resumen calculado de los integrantes vigentes de cada programa (Coordinador e investigadores).
+    /// Es información pública del portal; evita que el modelo cuente a partir de fragmentos sueltos.
+    /// </summary>
+    private async Task<IEnumerable<DocumentoIndexado>> CrearResumenIntegrantesAsync(CancellationToken ct)
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5));
+        var programas = await db.Programas.AsNoTracking().Where(p => p.Activo).OrderBy(p => p.Nombre)
+            .Select(p => new { p.Id, p.Nombre }).ToListAsync(ct);
+        var integrantes = await db.ProgramaIntegrantes.AsNoTracking()
+            .Where(i => i.Activo && i.Usuario!.Activo
+                && (i.FechaInicio == null || i.FechaInicio <= hoy) && (i.FechaFin == null || i.FechaFin > hoy))
+            .Select(i => new { i.ProgramaId, i.RolEnPrograma, Nombre = i.Usuario!.Nombres + " " + i.Usuario.Apellidos })
+            .ToListAsync(ct);
+
+        var lineas = new List<string>();
+        var documentos = new List<DocumentoIndexado>();
+        foreach (var programa in programas)
+        {
+            var delPrograma = integrantes.Where(i => i.ProgramaId == programa.Id).ToList();
+            var coordinadores = delPrograma.Where(i => i.RolEnPrograma == "Coordinador").Select(i => i.Nombre).OrderBy(n => n).ToList();
+            var investigadores = delPrograma.Where(i => i.RolEnPrograma != "Coordinador").Select(i => i.Nombre).OrderBy(n => n).ToList();
+            var linea = $"Programa {programa.Nombre}: coordinador vigente {(coordinadores.Count > 0 ? string.Join(" y ", coordinadores) : "sin asignar")}; "
+                + $"{investigadores.Count} investigador(es) vigente(s){(investigadores.Count > 0 ? ": " + string.Join(", ", investigadores) : "")}; "
+                + $"{delPrograma.Count} integrantes vigentes en total.";
+            lineas.Add(linea);
+            documentos.Add(new DocumentoIndexado($"integrantes del programa {programa.Nombre}", linea, false));
+        }
+
+        documentos.Insert(0, new DocumentoIndexado(
+            "integrantes coordinadores e investigadores vigentes de los programas",
+            $"Datos exactos de integrantes vigentes por programa (coordinador e investigadores). {string.Join(" ", lineas)}",
+            false));
         return documentos;
     }
 

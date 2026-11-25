@@ -24,7 +24,7 @@ public sealed class Notificador(IApplicationDbContext db, TimeProvider reloj)
     /// <summary>Coordinador con vinculación vigente al programa, si existe.</summary>
     public Task<int?> CoordinadorVigenteAsync(int programaId, CancellationToken ct)
     {
-        var hoy = DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+        var hoy = FechaLocal.Hoy(reloj);
         return db.ProgramaIntegrantes
             .Where(pi => pi.ProgramaId == programaId && pi.Activo && pi.RolEnPrograma == RolesPrograma.Coordinador
                 && (pi.FechaInicio == null || pi.FechaInicio <= hoy) && (pi.FechaFin == null || pi.FechaFin > hoy))

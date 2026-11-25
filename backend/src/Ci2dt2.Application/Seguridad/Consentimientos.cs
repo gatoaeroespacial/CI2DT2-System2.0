@@ -46,7 +46,7 @@ public sealed class ConsentimientosService(IApplicationDbContext db, IContextoPe
 
     private Task<PoliticaTratamientoDatos?> PoliticaVigenteAsync(CancellationToken ct)
     {
-        var hoy = DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+        var hoy = FechaLocal.Hoy(reloj);
         return db.PoliticasTratamientoDatos
             .Where(p => p.Activo && p.VigenteDesde <= hoy && (p.VigenteHasta == null || p.VigenteHasta >= hoy))
             .OrderByDescending(p => p.VigenteDesde).FirstOrDefaultAsync(ct);

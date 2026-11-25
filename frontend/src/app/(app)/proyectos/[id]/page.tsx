@@ -58,7 +58,7 @@ export default function FichaProyecto() {
         <span>IP: {proyecto.investigadorPrincipal}</span>
         <BarraAvance valor={proyecto.porcentajeAvance} />
       </div>
-      <PanelFlujo proyecto={proyecto} flujo={flujo} />
+      <PanelFlujo proyecto={proyecto} flujo={flujo} permisos={permisos} />
       <Pestanas pestanas={PESTANAS} activa={pestana} onCambio={setPestana} />
       {pestana === "general" && <General proyecto={proyecto} puedeEditar={permisos.puedeEditar} />}
       {pestana === "equipo" && <Equipo proyectoId={id} permisos={permisos} />}

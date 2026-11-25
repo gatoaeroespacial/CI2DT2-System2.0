@@ -33,7 +33,19 @@ const coloresValidacion: Record<string, string> = {
   Pendiente: "bg-amber-100 text-amber-900",
   Validado: "bg-emerald-100 text-emerald-900",
   Rechazado: "bg-red-100 text-red-900",
+  "Validado por el IP": "bg-sky-100 text-sky-900",
 };
+
+/**
+ * Estado visible del avance: la validación del IP es un primer nivel, así que un avance "Validado"
+ * cuya última validación es del IP sigue pendiente del Coordinador o el Director (HU-20).
+ */
+function estadoVisible(a: Avance): string {
+  const estado = a.estadoValidacion ?? "Pendiente";
+  if (estado !== "Validado" || a.validaciones.length === 0) return estado;
+  const ultima = a.validaciones.reduce((x, y) => (y.id > x.id ? y : x));
+  return ultima.rolValidador === "IP" ? "Validado por el IP" : estado;
+}
 
 export async function descargarAdjunto(id: number) {
   const { url } = await api<{ url: string }>(`/avances/adjuntos/${id}/descarga`);
@@ -51,8 +63,15 @@ export function Avances({ proyecto, puedeRegistrar }: { proyecto: ProyectoDetall
     await queryClient.invalidateQueries({ queryKey: ["proyecto", String(proyecto.id)] });
   };
   // El backend decide si el usuario valida (IP, Coordinador del programa o Director).
-  const puedeValidarRol = tieneAlgunRol(usuario?.roles ?? [], [ROLES.Director, ROLES.Coordinador])
-    || proyecto.investigadorPrincipalId === usuario?.id;
+  const esDirectivo = tieneAlgunRol(usuario?.roles ?? [], [ROLES.Director, ROLES.Coordinador]);
+  const esIp = proyecto.investigadorPrincipalId === usuario?.id;
+  // Validar se ofrece solo cuando el avance está pendiente para este usuario: el IP valida los
+  // avances de su equipo (no los propios) y el Coordinador o el Director dan la validación final.
+  const puedeValidar = (a: Avance) => {
+    const estado = estadoVisible(a);
+    if (estado === "Pendiente") return esDirectivo || (esIp && a.autorId !== usuario?.id);
+    return estado === "Validado por el IP" && esDirectivo;
+  };
 
   if (avances.isPending) return <Cargando />;
   if (avances.isError) return <EstadoError mensaje={avances.error.message} onReintentar={() => avances.refetch()} />;
@@ -80,8 +99,8 @@ export function Avances({ proyecto, puedeRegistrar }: { proyecto: ProyectoDetall
                   </div>
                   <div className="flex items-center gap-3">
                     <BarraAvance valor={a.porcentajeAvance} />
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${coloresValidacion[a.estadoValidacion ?? "Pendiente"] ?? ""}`}>
-                      {a.estadoValidacion ?? "Pendiente"}
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${coloresValidacion[estadoVisible(a)] ?? ""}`}>
+                      {estadoVisible(a)}
                     </span>
                   </div>
                 </div>
@@ -114,7 +133,7 @@ export function Avances({ proyecto, puedeRegistrar }: { proyecto: ProyectoDetall
                     </button>
                   )}
                 </div>
-                {puedeValidarRol && a.estadoValidacion !== "Rechazado" && (
+                {puedeValidar(a) && (
                   <Validar avance={a} onTerminar={refrescar} />
                 )}
                 {edicion !== "nuevo" && edicion?.id === a.id && (

@@ -72,7 +72,7 @@ public sealed class ConvocatoriaRequestValidator : AbstractValidator<Convocatori
 public sealed class ConvocatoriasService(IApplicationDbContext db, IDbConnectionFactory conexiones, TimeProvider reloj)
 {
     public const int TamanoPagina = 20;
-    private DateOnly Hoy => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     private const string Seleccion = """
         SELECT c.Id, c.Nombre, c.Numero, c.TipoConvocatoriaId, t.Nombre AS TipoConvocatoria,

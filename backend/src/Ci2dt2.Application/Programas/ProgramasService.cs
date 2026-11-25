@@ -9,7 +9,7 @@ namespace Ci2dt2.Application.Programas;
 /// <summary>Comandos de programas, objetivos, integrantes y aliados del programa (HU-06 y HU-07).</summary>
 public sealed class ProgramasService(IApplicationDbContext db, AccesoRecursos acceso, Notificador notificador, TimeProvider reloj)
 {
-    private DateOnly Hoy => DateOnly.FromDateTime(reloj.GetUtcNow().UtcDateTime);
+    private DateOnly Hoy => FechaLocal.Hoy(reloj);
 
     public async Task ActualizarAsync(int id, ActualizarProgramaRequest request, CancellationToken ct = default)
     {
