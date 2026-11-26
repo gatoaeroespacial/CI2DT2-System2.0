@@ -39,7 +39,7 @@ export function EditarUsuario() {
           textoGuardar="Guardar cambios"
           onGuardar={async (datos) => {
             await api(`/usuarios/${id}`, json("PUT", aPeticionUsuario(datos)));
-            const rolesCambiaron = [...datos.roles].sort().join() !== [...original.roles].sort().join();
+            const rolesCambiaron = [...datos.roles].sort((a, b) => a.localeCompare(b)).join() !== [...original.roles].sort((a, b) => a.localeCompare(b)).join();
             if (rolesCambiaron) await api(`/usuarios/${id}/roles`, json("PUT", { roles: datos.roles }));
             await queryClient.invalidateQueries({ queryKey: ["usuarios"] });
             await queryClient.invalidateQueries({ queryKey: ["usuario", id] });

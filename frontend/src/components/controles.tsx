@@ -81,8 +81,16 @@ export function Autocompletar({
               role="option"
               aria-selected={String(o.id) === valor}
               className="cursor-pointer px-3 py-2 text-sm hover:bg-emerald-50"
+              tabIndex={-1}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                setTexto(o.etiqueta);
+                setAbierto(false);
+                onCambio(String(o.id), o.etiqueta);
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
                 setTexto(o.etiqueta);
                 setAbierto(false);
                 onCambio(String(o.id), o.etiqueta);

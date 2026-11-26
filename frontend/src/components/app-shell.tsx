@@ -156,7 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Al recargar la página la sesión se recupera con el token de refresco (cookie HttpOnly).
   useEffect(() => {
     if (usuario) return;
-    renovarSesion().then((ok) => {
+    void renovarSesion().then((ok) => {
       if (!ok) window.location.replace("/login?sesion=expirada");
     });
   }, [usuario]);

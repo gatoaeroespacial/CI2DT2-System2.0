@@ -716,7 +716,7 @@ export default function AsistenteFormulacionPage() {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     if (mensajePrompt.trim() && !cargando) {
-                      redactarSeccionConIa(seccionObjetivo, mensajePrompt.trim());
+                      void redactarSeccionConIa(seccionObjetivo, mensajePrompt.trim());
                     }
                   }
                 }}
@@ -835,7 +835,7 @@ export default function AsistenteFormulacionPage() {
                         className="text-xs py-1 px-2.5"
                         onClick={() => {
                           setSeccionObjetivo(sec.codigoSeccion);
-                          redactarSeccionConIa(sec.codigoSeccion);
+                          void redactarSeccionConIa(sec.codigoSeccion);
                         }}
                       >
                         ⚡ Redactar con IA

@@ -21,15 +21,15 @@ public sealed class ManejadorExcepciones(ILogger<ManejadorExcepciones> logger) :
         _ => (StatusCodes.Status500InternalServerError, "Ocurrió un error inesperado. Intente nuevamente."),
     };
 
-    public async ValueTask<bool> TryHandleAsync(HttpContext http, Exception exception, CancellationToken ct)
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var (estado, mensaje) = Clasificar(exception);
 
         if (estado == StatusCodes.Status500InternalServerError)
-            logger.LogError(exception, "Error no controlado en {Ruta}", http.Request.Path);
+            logger.LogError(exception, "Error no controlado en {Ruta}", httpContext.Request.Path);
 
-        http.Response.StatusCode = estado;
-        await http.Response.WriteAsJsonAsync(new ErrorApi(mensaje), ct);
+        httpContext.Response.StatusCode = estado;
+        await httpContext.Response.WriteAsJsonAsync(new ErrorApi(mensaje), cancellationToken);
         return true;
     }
 }

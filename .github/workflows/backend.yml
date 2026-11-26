@@ -63,7 +63,7 @@ jobs:
           AMBIENTE: ${{ github.ref_name == 'main' && 'Production' || 'Pruebas' }}
         run: Set-Content -Path "publish/appsettings.$env:AMBIENTE.json" -Value $env:APPSETTINGS -Encoding utf8
       - name: Web Deploy
-        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        uses: rasmusbuchholdt/simply-web-deploy@026998dd5857dd5f3645cc13ed48335e07d7f94b # 2.1.0
         with:
           website-name: ${{ secrets.WEBSITE_NAME }}
           server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}

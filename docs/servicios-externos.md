@@ -14,7 +14,6 @@ Plan gratuito: 300 correos al día, suficiente para el piloto.
    "Smtp": {
      "Host": "smtp-relay.brevo.com",
      "Puerto": 587,
-     "UsarSsl": true,
      "Usuario": "<Login SMTP de Brevo>",
      "Contrasena": "<SMTP key>",
      "Remitente": "<correo remitente verificado>",

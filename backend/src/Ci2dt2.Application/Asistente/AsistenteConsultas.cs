@@ -59,7 +59,8 @@ public sealed class AsistenteConsultas(
 {
     private static readonly Regex ExpresionTecnica = new(
         @"\b(select|insert|update|delete|sql|tabla|tablas|columna|columnas|esquema|query)\b|[A-Za-z_]+\.[A-Za-z_]+",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled,
+        TimeSpan.FromSeconds(1));
 
     public async Task<AsistenteRespuesta> ConsultarAsync(
         AsistenteRequest request,
@@ -159,11 +160,13 @@ public sealed class AsistenteConsultas(
         var descompuesta = texto.Normalize(NormalizationForm.FormD);
         var sinAcentos = new string(descompuesta.Where(c =>
             CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark).ToArray());
-        return Regex.Replace(sinAcentos.ToLowerInvariant(), @"[^\p{L}\p{N}]+", " ").Trim();
+        return Regex.Replace(sinAcentos.ToLowerInvariant(), @"[^\p{L}\p{N}]+", " ", RegexOptions.None, TimeSpan.FromSeconds(1)).Trim();
     }
 
     private static bool ContienePalabra(string texto, IEnumerable<string> terminos) =>
         terminos.Any(termino => Regex.IsMatch(
             texto,
-            $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(termino)}(?![\p{{L}}\p{{N}}])"));
+            $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(termino)}(?![\p{{L}}\p{{N}}])",
+            RegexOptions.None,
+            TimeSpan.FromSeconds(1)));
 }

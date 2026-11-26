@@ -266,7 +266,7 @@ public sealed class ProyectosService(IApplicationDbContext db, AccesoRecursos ac
     private async Task GuardarConCodigoAsync(Proyecto proyecto, CancellationToken ct)
     {
         var prefijo = $"CI2DT2-{reloj.GetUtcNow().Year}-";
-        for (var intento = 1; ; intento++)
+        for (var intento = 1; intento <= 3; intento++)
         {
             var codigos = await db.Proyectos.Where(p => p.Codigo != null && p.Codigo.StartsWith(prefijo))
                 .Select(p => p.Codigo!).ToListAsync(ct);

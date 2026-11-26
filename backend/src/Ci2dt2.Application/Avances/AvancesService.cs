@@ -105,7 +105,7 @@ public sealed class AvancesService(
     public const long TamanoMaximoAdjunto = 20L * 1024 * 1024;
 
     // PDF, DOCX, XLSX, CSV, JPG y PNG.
-    public static readonly Dictionary<string, string> Formatos = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly IReadOnlyDictionary<string, string> Formatos = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         [".pdf"] = "application/pdf",
         [".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -114,7 +114,7 @@ public sealed class AvancesService(
         [".jpg"] = "image/jpeg",
         [".jpeg"] = "image/jpeg",
         [".png"] = "image/png",
-    };
+    }.AsReadOnly();
 
     private DateTime Ahora => reloj.GetUtcNow().UtcDateTime;
 
@@ -279,6 +279,33 @@ public sealed class AvancesService(
 
     // ----- HU-20 -----
 
+    // Última validación del avance: si fue del IP, el avance sigue pendiente para el Coordinador.
+    private const string UltimoRol =
+        "(SELECT TOP 1 v.RolValidador FROM AvanceValidaciones v WHERE v.AvanceId = a.Id AND v.Activo = 1 ORDER BY v.Id DESC)";
+
+    // Bandeja por rol con banderas parametrizadas: Director, todos los pendientes; Coordinador, los de
+    // su programa; IP, los de su equipo (los suyos pasan directo al Coordinador).
+    private const string SqlPendientes = $"""
+        SELECT a.Id, a.ProyectoId, p.Codigo, p.Titulo AS Proyecto, pr.Nombre AS Programa, a.Titulo,
+               u.Nombres + ' ' + u.Apellidos AS Autor, a.PorcentajeAvance, a.FechaCaptura, a.EstadoValidacion,
+               @rol AS RolValidador
+        FROM Avances a
+        JOIN Proyectos p ON p.Id = a.ProyectoId AND p.Activo = 1
+        JOIN Programas pr ON pr.Id = p.ProgramaId
+        JOIN Usuarios u ON u.Id = a.AutorId
+        WHERE a.Activo = 1 AND (
+              (@esDirector = 1 AND (a.EstadoValidacion = N'Pendiente' OR (a.EstadoValidacion = N'Validado' AND {UltimoRol} = N'IP')))
+           OR (@esCoordinador = 1
+               AND (a.EstadoValidacion = N'Pendiente' OR (a.EstadoValidacion = N'Validado' AND {UltimoRol} = N'IP'))
+               AND EXISTS (SELECT 1 FROM ProgramaIntegrantes g WHERE g.ProgramaId = p.ProgramaId AND g.UsuarioId = @usuarioId
+                           AND g.Activo = 1 AND g.RolEnPrograma = N'Coordinador'
+                           AND (g.FechaInicio IS NULL OR g.FechaInicio <= @hoy) AND (g.FechaFin IS NULL OR g.FechaFin > @hoy)))
+           OR (@esInvestigador = 1 AND a.EstadoValidacion = N'Pendiente' AND p.InvestigadorPrincipalId = @usuarioId AND a.AutorId <> @usuarioId))
+          AND (@proyectoId IS NULL OR a.ProyectoId = @proyectoId)
+          AND (@periodo IS NULL OR FORMAT(a.FechaCaptura, 'yyyy-MM') = @periodo)
+        ORDER BY a.FechaCaptura
+        """;
+
     /// <summary>
     /// Bandeja "Avances por validar". El IP ve los avances pendientes de sus proyectos; el Coordinador
     /// (y el Director) los de su programa que aún no tienen la validación de ese nivel.
@@ -288,43 +315,27 @@ public sealed class AvancesService(
         if (!actor.Roles.Any(r => Politicas.Matriz[Politicas.ValidarAvances].Contains(r)))
             throw new AccesoDenegadoException();
 
-        var hoy = FechaLocal.Hoy(reloj).ToDateTime(TimeOnly.MinValue);
-        // Última validación del avance: si fue del IP, el avance sigue pendiente para el Coordinador.
-        const string ultimaRol = "(SELECT TOP 1 v.RolValidador FROM AvanceValidaciones v WHERE v.AvanceId = a.Id AND v.Activo = 1 ORDER BY v.Id DESC)";
-        var condiciones = new List<string>();
-        if (actor.Tiene(Roles.Director))
-            condiciones.Add($"(a.EstadoValidacion = N'Pendiente' OR (a.EstadoValidacion = N'Validado' AND {ultimaRol} = N'IP'))");
-        if (actor.Tiene(Roles.Coordinador))
-            condiciones.Add($"""
-                ((a.EstadoValidacion = N'Pendiente' OR (a.EstadoValidacion = N'Validado' AND {ultimaRol} = N'IP'))
-                 AND EXISTS (SELECT 1 FROM ProgramaIntegrantes g WHERE g.ProgramaId = p.ProgramaId AND g.UsuarioId = @usuarioId
-                             AND g.Activo = 1 AND g.RolEnPrograma = N'Coordinador'
-                             AND (g.FechaInicio IS NULL OR g.FechaInicio <= @hoy) AND (g.FechaFin IS NULL OR g.FechaFin > @hoy)))
-                """);
-        if (actor.Tiene(Roles.Investigador))
-            // El IP valida los avances de su equipo; los suyos pasan directo al Coordinador.
-            condiciones.Add("(a.EstadoValidacion = N'Pendiente' AND p.InvestigadorPrincipalId = @usuarioId AND a.AutorId <> @usuarioId)");
-        if (condiciones.Count == 0)
+        var esDirector = actor.Tiene(Roles.Director);
+        var esCoordinador = actor.Tiene(Roles.Coordinador);
+        var esInvestigador = actor.Tiene(Roles.Investigador);
+        if (!esDirector && !esCoordinador && !esInvestigador)
             return new BandejaAvances(0, []);
 
-        var rol = actor.Tiene(Roles.Director) ? EstadosAvance.RolDirector
-            : actor.Tiene(Roles.Coordinador) ? EstadosAvance.RolCoordinador : EstadosAvance.RolIp;
-        var sql = $"""
-            SELECT a.Id, a.ProyectoId, p.Codigo, p.Titulo AS Proyecto, pr.Nombre AS Programa, a.Titulo,
-                   u.Nombres + ' ' + u.Apellidos AS Autor, a.PorcentajeAvance, a.FechaCaptura, a.EstadoValidacion,
-                   @rol AS RolValidador
-            FROM Avances a
-            JOIN Proyectos p ON p.Id = a.ProyectoId AND p.Activo = 1
-            JOIN Programas pr ON pr.Id = p.ProgramaId
-            JOIN Usuarios u ON u.Id = a.AutorId
-            WHERE a.Activo = 1 AND ({string.Join(" OR ", condiciones)})
-              AND (@proyectoId IS NULL OR a.ProyectoId = @proyectoId)
-              AND (@periodo IS NULL OR FORMAT(a.FechaCaptura, 'yyyy-MM') = @periodo)
-            ORDER BY a.FechaCaptura
-            """;
+        var hoy = FechaLocal.Hoy(reloj).ToDateTime(TimeOnly.MinValue);
+        var rol = esDirector ? EstadosAvance.RolDirector : esCoordinador ? EstadosAvance.RolCoordinador : EstadosAvance.RolIp;
         using var conexion = conexiones.Crear();
-        var items = (await conexion.QueryAsync<AvancePendiente>(new CommandDefinition(sql,
-            new { usuarioId = actor.Id, hoy, proyectoId, periodo = string.IsNullOrWhiteSpace(periodo) ? null : periodo, rol },
+        var items = (await conexion.QueryAsync<AvancePendiente>(new CommandDefinition(SqlPendientes,
+            new
+            {
+                usuarioId = actor.Id,
+                hoy,
+                proyectoId,
+                periodo = string.IsNullOrWhiteSpace(periodo) ? null : periodo,
+                rol,
+                esDirector,
+                esCoordinador,
+                esInvestigador,
+            },
             cancellationToken: ct))).ToList();
         return new BandejaAvances(items.Count, items);
     }

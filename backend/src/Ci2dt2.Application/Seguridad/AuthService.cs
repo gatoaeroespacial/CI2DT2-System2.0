@@ -33,6 +33,17 @@ public sealed class AuthService(
     // Hash de referencia para igualar el tiempo de respuesta cuando el correo no existe.
     private static string? _hashFicticio;
 
+    /// <summary>
+    /// Hash de una contraseña aleatoria, calculado una sola vez: verificarlo cuando el usuario no existe
+    /// iguala el tiempo de respuesta y evita revelar qué correos están registrados.
+    /// </summary>
+    private static string HashFicticio(IPasswordHasher hasher)
+    {
+        if (_hashFicticio is null)
+            Interlocked.CompareExchange(ref _hashFicticio, hasher.Hash(Guid.NewGuid().ToString()), null);
+        return _hashFicticio;
+    }
+
     public async Task<LoginResultado> LoginAsync(LoginRequest request, string? ip, CancellationToken ct = default)
     {
         var email = NormalizarEmail(request.Email);
@@ -55,8 +66,7 @@ public sealed class AuthService(
         }
         else
         {
-            _hashFicticio ??= hasher.Hash(Guid.NewGuid().ToString());
-            hasher.Verificar(_hashFicticio, request.Password);
+            hasher.Verificar(HashFicticio(hasher), request.Password);
             credencialesValidas = false;
         }
 

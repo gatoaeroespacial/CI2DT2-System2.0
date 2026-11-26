@@ -77,17 +77,76 @@ public sealed class ProyectosQueries(IDbConnectionFactory conexiones)
         EXISTS (SELECT 1 FROM ProyectoIntegrantes x WHERE x.ProyectoId = p.Id AND x.UsuarioId = @usuarioId AND x.Activo = 1)
         """;
 
+    // Columnas ordenables (lista blanca): la clave canónica viaja como parámetro @orden.
     private static readonly Dictionary<string, string> Ordenes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["codigo"] = "p.Codigo",
-        ["titulo"] = "p.Titulo",
-        ["programa"] = "pr.Nombre",
-        ["ip"] = "InvestigadorPrincipal",
-        ["estado"] = "e.Orden",
-        ["avance"] = "p.PorcentajeAvance",
-        ["fechaFin"] = "p.FechaFin",
-        ["proximoHito"] = "ProximoHitoFecha",
+        ["codigo"] = "codigo",
+        ["titulo"] = "titulo",
+        ["programa"] = "programa",
+        ["ip"] = "ip",
+        ["estado"] = "estado",
+        ["avance"] = "avance",
+        ["fechaFin"] = "fechaFin",
+        ["proximoHito"] = "proximoHito",
     };
+
+    private const string Uniones = """
+        FROM Proyectos p
+        JOIN Programas pr ON pr.Id = p.ProgramaId
+        JOIN EstadosProyecto e ON e.Id = p.EstadoId
+        JOIN TiposProyecto t ON t.Id = p.TipoProyectoId
+        JOIN Usuarios ip ON ip.Id = p.InvestigadorPrincipalId
+        """;
+
+    // Alcance por rol (HU-05) con banderas parametrizadas: la consulta es siempre la misma.
+    private const string Filtros = $"""
+        WHERE p.Activo = 1
+          AND (@todos = 1 OR (@comoCoordinador = 1 AND {CoordinadorVigente}) OR (@comoIntegrante = 1 AND {EsOFueIntegrante}))
+          AND (@programaId IS NULL OR p.ProgramaId = @programaId)
+          AND (@estadoId IS NULL OR p.EstadoId = @estadoId)
+          AND (@tipoProyectoId IS NULL OR p.TipoProyectoId = @tipoProyectoId)
+          AND (@anio IS NULL OR YEAR(COALESCE(p.FechaInicio, CAST(p.CreadoEn AS date))) = @anio)
+          AND (@ipId IS NULL OR p.InvestigadorPrincipalId = @ipId)
+          AND (@busqueda IS NULL OR p.Titulo LIKE @busqueda ESCAPE '\' OR p.Codigo LIKE @busqueda ESCAPE '\')
+        """;
+
+    private const string SqlListado = $"""
+        SELECT COUNT(*) {Uniones} {Filtros};
+
+        SELECT p.Id, p.Codigo, p.Titulo, p.ProgramaId, pr.Nombre AS Programa,
+               p.InvestigadorPrincipalId, ip.Nombres + ' ' + ip.Apellidos AS InvestigadorPrincipal,
+               p.EstadoId, e.Nombre AS Estado, t.Nombre AS TipoProyecto, p.PorcentajeAvance,
+               CAST(p.FechaFin AS datetime2) AS FechaFin,
+               CAST(h.FechaLimite AS datetime2) AS ProximoHitoFecha, h.Titulo AS ProximoHitoTitulo
+        {Uniones}
+        OUTER APPLY (SELECT TOP 1 hi.FechaLimite, hi.Titulo
+                     FROM Hitos hi JOIN Cronogramas c ON c.Id = hi.CronogramaId
+                     WHERE c.ProyectoId = p.Id AND c.Activo = 1 AND hi.Activo = 1
+                       AND hi.Estado IN (N'Pendiente', N'En curso')
+                     ORDER BY hi.FechaLimite) h
+        {Filtros}
+        ORDER BY
+          CASE WHEN @orden = 'codigo' AND @desc = 0 THEN p.Codigo END ASC,
+          CASE WHEN @orden = 'codigo' AND @desc = 1 THEN p.Codigo END DESC,
+          CASE WHEN @orden = 'titulo' AND @desc = 0 THEN p.Titulo END ASC,
+          CASE WHEN @orden = 'titulo' AND @desc = 1 THEN p.Titulo END DESC,
+          CASE WHEN @orden = 'programa' AND @desc = 0 THEN pr.Nombre END ASC,
+          CASE WHEN @orden = 'programa' AND @desc = 1 THEN pr.Nombre END DESC,
+          CASE WHEN @orden = 'ip' AND @desc = 0 THEN ip.Nombres + ' ' + ip.Apellidos END ASC,
+          CASE WHEN @orden = 'ip' AND @desc = 1 THEN ip.Nombres + ' ' + ip.Apellidos END DESC,
+          CASE WHEN @orden = 'estado' AND @desc = 0 THEN e.Orden END ASC,
+          CASE WHEN @orden = 'estado' AND @desc = 1 THEN e.Orden END DESC,
+          CASE WHEN @orden = 'avance' AND @desc = 0 THEN p.PorcentajeAvance END ASC,
+          CASE WHEN @orden = 'avance' AND @desc = 1 THEN p.PorcentajeAvance END DESC,
+          CASE WHEN @orden = 'fechaFin' AND @desc = 0 THEN p.FechaFin END ASC,
+          CASE WHEN @orden = 'fechaFin' AND @desc = 1 THEN p.FechaFin END DESC,
+          CASE WHEN @orden = 'proximoHito' AND @desc = 0 THEN h.FechaLimite END ASC,
+          CASE WHEN @orden = 'proximoHito' AND @desc = 1 THEN h.FechaLimite END DESC,
+          p.Id DESC
+        OFFSET @offset ROWS FETCH NEXT @tamano ROWS ONLY;
+        """;
+
+    private sealed record Alcance(bool Todos, bool ComoCoordinador, bool ComoIntegrante);
 
     /// <summary>
     /// Listado con filtros, búsqueda, orden y paginación en el servidor (HU-13 CA-1 y CA-2).
@@ -98,76 +157,36 @@ public sealed class ProyectosQueries(IDbConnectionFactory conexiones)
 
     /// <summary>"Mis proyectos": vinculaciones vigentes e históricas del usuario.</summary>
     public Task<Pagina<ProyectoListadoItem>> MiosAsync(FiltroProyectos filtro, UsuarioAutenticado usuario, CancellationToken ct = default) =>
-        ListarConAlcanceAsync(filtro, usuario, EsOFueIntegrante, ct);
+        ListarConAlcanceAsync(filtro, usuario, new Alcance(false, false, true), ct);
 
-    private static string AlcanceDe(UsuarioAutenticado u)
-    {
-        if (u.Tiene(Roles.Administrador) || u.Tiene(Roles.Director))
-            return "1 = 1";
-        var condiciones = new List<string>();
-        if (u.Tiene(Roles.Coordinador))
-            condiciones.Add(CoordinadorVigente);
-        if (u.Tiene(Roles.Investigador))
-            condiciones.Add(EsOFueIntegrante);
-        return condiciones.Count == 0 ? "1 = 0" : "(" + string.Join(" OR ", condiciones) + ")";
-    }
+    private static Alcance AlcanceDe(UsuarioAutenticado u) =>
+        u.Tiene(Roles.Administrador) || u.Tiene(Roles.Director)
+            ? new Alcance(true, false, false)
+            : new Alcance(false, u.Tiene(Roles.Coordinador), u.Tiene(Roles.Investigador));
 
     private async Task<Pagina<ProyectoListadoItem>> ListarConAlcanceAsync(
-        FiltroProyectos f, UsuarioAutenticado usuario, string alcance, CancellationToken ct)
+        FiltroProyectos f, UsuarioAutenticado usuario, Alcance alcance, CancellationToken ct)
     {
         var pagina = Math.Max(1, f.Pagina);
-        // Sin orden explícito: los más recientes primero.
-        var orden = f.Orden is not null && Ordenes.TryGetValue(f.Orden, out var columna)
-            ? $"{columna} {(f.Descendente ? "DESC" : "ASC")}, p.Id DESC"
-            : "p.Id DESC";
+        // Sin orden explícito: los más recientes primero (p.Id DESC).
+        var orden = f.Orden is not null && Ordenes.TryGetValue(f.Orden, out var clave) ? clave : null;
         var busqueda = string.IsNullOrWhiteSpace(f.Busqueda) ? null : $"%{EscaparLike(f.Busqueda.Trim())}%";
 
-        const string uniones = """
-            FROM Proyectos p
-            JOIN Programas pr ON pr.Id = p.ProgramaId
-            JOIN EstadosProyecto e ON e.Id = p.EstadoId
-            JOIN TiposProyecto t ON t.Id = p.TipoProyectoId
-            JOIN Usuarios ip ON ip.Id = p.InvestigadorPrincipalId
-            """;
-        var filtros = $"""
-            WHERE p.Activo = 1 AND {alcance}
-              AND (@programaId IS NULL OR p.ProgramaId = @programaId)
-              AND (@estadoId IS NULL OR p.EstadoId = @estadoId)
-              AND (@tipoProyectoId IS NULL OR p.TipoProyectoId = @tipoProyectoId)
-              AND (@anio IS NULL OR YEAR(COALESCE(p.FechaInicio, CAST(p.CreadoEn AS date))) = @anio)
-              AND (@ipId IS NULL OR p.InvestigadorPrincipalId = @ipId)
-              AND (@busqueda IS NULL OR p.Titulo LIKE @busqueda ESCAPE '\' OR p.Codigo LIKE @busqueda ESCAPE '\')
-            """;
-
-        var sql = $"""
-            SELECT COUNT(*) {uniones} {filtros};
-
-            SELECT p.Id, p.Codigo, p.Titulo, p.ProgramaId, pr.Nombre AS Programa,
-                   p.InvestigadorPrincipalId, ip.Nombres + ' ' + ip.Apellidos AS InvestigadorPrincipal,
-                   p.EstadoId, e.Nombre AS Estado, t.Nombre AS TipoProyecto, p.PorcentajeAvance,
-                   CAST(p.FechaFin AS datetime2) AS FechaFin,
-                   CAST(h.FechaLimite AS datetime2) AS ProximoHitoFecha, h.Titulo AS ProximoHitoTitulo
-            {uniones}
-            OUTER APPLY (SELECT TOP 1 hi.FechaLimite, hi.Titulo
-                         FROM Hitos hi JOIN Cronogramas c ON c.Id = hi.CronogramaId
-                         WHERE c.ProyectoId = p.Id AND c.Activo = 1 AND hi.Activo = 1
-                           AND hi.Estado IN (N'Pendiente', N'En curso')
-                         ORDER BY hi.FechaLimite) h
-            {filtros}
-            ORDER BY {orden}
-            OFFSET @offset ROWS FETCH NEXT @tamano ROWS ONLY;
-            """;
-
         using var conexion = conexiones.Crear();
-        using var r = await conexion.QueryMultipleAsync(new CommandDefinition(sql, new
+        using var r = await conexion.QueryMultipleAsync(new CommandDefinition(SqlListado, new
         {
             usuarioId = usuario.Id,
+            todos = alcance.Todos,
+            comoCoordinador = alcance.ComoCoordinador,
+            comoIntegrante = alcance.ComoIntegrante,
             programaId = f.ProgramaId,
             estadoId = f.EstadoId,
             tipoProyectoId = f.TipoProyectoId,
             anio = f.Anio,
             ipId = f.InvestigadorPrincipalId,
             busqueda,
+            orden,
+            desc = f.Descendente,
             offset = (pagina - 1) * TamanoPagina,
             tamano = TamanoPagina,
         }, cancellationToken: ct));

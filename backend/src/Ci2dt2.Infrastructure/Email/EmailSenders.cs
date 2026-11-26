@@ -13,7 +13,6 @@ public sealed class OpcionesSmtp
     /// <summary>Si está vacío, los correos solo se escriben en el log (desarrollo).</summary>
     public string? Host { get; set; }
     public int Puerto { get; set; } = 587;
-    public bool UsarSsl { get; set; } = true;
     public string? Usuario { get; set; }
     public string? Contrasena { get; set; }
     public string Remitente { get; set; } = "no-responder@ucaldas.edu.co";
@@ -34,7 +33,8 @@ internal sealed class SmtpEmailSender(IOptions<OpcionesSmtp> opciones) : IEmailS
         };
         mensaje.To.Add(para);
 
-        using var cliente = new SmtpClient(o.Host, o.Puerto) { EnableSsl = o.UsarSsl };
+        // TLS siempre activo: las credenciales y los correos nunca viajan en claro.
+        using var cliente = new SmtpClient(o.Host, o.Puerto) { EnableSsl = true };
         if (!string.IsNullOrEmpty(o.Usuario))
             cliente.Credentials = new NetworkCredential(o.Usuario, o.Contrasena);
         await cliente.SendMailAsync(mensaje, ct);

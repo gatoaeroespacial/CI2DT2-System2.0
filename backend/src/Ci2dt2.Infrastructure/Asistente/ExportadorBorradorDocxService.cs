@@ -220,9 +220,9 @@ public sealed partial class ExportadorBorradorDocxService(
                     AgregarTextoMarkdown(parrafo, $"•  {lineaTrim[2..]}", tamanoFuente: 20);
                 }
             }
-            else if (Regex.Match(lineaTrim, @"^\d+\.\s+").Success)
+            else if (Regex.IsMatch(lineaTrim, @"^\d+\.\s+", RegexOptions.None, TimeSpan.FromSeconds(1)))
             {
-                var textoNumerado = Regex.Replace(lineaTrim, @"^\d+\.\s+", match => $"{match.Value}");
+                var textoNumerado = Regex.Replace(lineaTrim, @"^\d+\.\s+", match => $"{match.Value}", RegexOptions.None, TimeSpan.FromSeconds(1));
                 body.AppendChild(CrearParrafoMarkdown(
                     textoNumerado,
                     tamanoFuente: 20,
@@ -378,7 +378,9 @@ public sealed partial class ExportadorBorradorDocxService(
     {
         var coincidencias = Regex.Matches(
             texto,
-            @"(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`)");
+            @"(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`)",
+            RegexOptions.None,
+            TimeSpan.FromSeconds(1));
 
         var posicion = 0;
         foreach (Match coincidencia in coincidencias)

@@ -95,14 +95,14 @@ public sealed class ConvocatoriasService(IApplicationDbContext db, IDbConnection
     {
         var pagina = Math.Max(1, f.Pagina);
         var busqueda = string.IsNullOrWhiteSpace(f.Busqueda) ? null : $"%{f.Busqueda.Trim().Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]")}%";
-        var filtro = $"""
+        const string filtro = $"""
             WHERE c.Activo = 1
               AND (@tipo IS NULL OR c.TipoConvocatoriaId = @tipo)
               AND (@entidad IS NULL OR c.EntidadConvocanteId = @entidad)
               AND (@estado IS NULL OR {EstadoSql} = @estado)
               AND (@busqueda IS NULL OR c.Nombre LIKE @busqueda OR c.Numero LIKE @busqueda)
             """;
-        var sql = $"""
+        const string sql = $"""
             SELECT COUNT(*) FROM Convocatorias c {filtro};
             {Seleccion} {filtro}
             ORDER BY CASE {EstadoSql} WHEN N'Abierta' THEN 0 WHEN N'Próxima' THEN 1 ELSE 2 END, c.FechaCierre, c.Id DESC

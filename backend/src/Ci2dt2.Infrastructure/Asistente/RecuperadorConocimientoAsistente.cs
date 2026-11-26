@@ -101,7 +101,8 @@ public sealed class RecuperadorConocimientoAsistente(
     };
     private static readonly Regex ExpresionCorreo = new(
         @"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled,
+        TimeSpan.FromSeconds(1));
     private static readonly IReadOnlyDictionary<string, string> NombresEntidad = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["Aliado"] = "entidades aliadas",
@@ -438,7 +439,7 @@ public sealed class RecuperadorConocimientoAsistente(
 
     private static IEnumerable<string> Tokenizar(string texto)
     {
-        foreach (Match coincidencia in Regex.Matches(Normalizar(texto), @"[\p{L}\p{N}]+"))
+        foreach (Match coincidencia in Regex.Matches(Normalizar(texto), @"[\p{L}\p{N}]+", RegexOptions.None, TimeSpan.FromSeconds(1)))
         {
             var token = coincidencia.Value;
             if (token.Length < 3 || PalabrasIgnoradas.Contains(token))
@@ -463,7 +464,7 @@ public sealed class RecuperadorConocimientoAsistente(
         NombresEntidad.GetValueOrDefault(nombre) ?? Humanizar(nombre);
 
     private static string Humanizar(string nombre) =>
-        Regex.Replace(nombre, @"(?<=[a-záéíóúñ])(?=[A-ZÁÉÍÓÚÑ])", " ");
+        Regex.Replace(nombre, @"(?<=[a-záéíóúñ])(?=[A-ZÁÉÍÓÚÑ])", " ", RegexOptions.None, TimeSpan.FromSeconds(1));
 
     private static string? FormatearValor(object? valor) => valor switch
     {

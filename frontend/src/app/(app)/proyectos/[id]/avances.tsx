@@ -43,7 +43,7 @@ const coloresValidacion: Record<string, string> = {
 function estadoVisible(a: Avance): string {
   const estado = a.estadoValidacion ?? "Pendiente";
   if (estado !== "Validado" || a.validaciones.length === 0) return estado;
-  const ultima = a.validaciones.reduce((x, y) => (y.id > x.id ? y : x));
+  const ultima = a.validaciones.reduce((x, y) => (y.id > x.id ? y : x), a.validaciones[0]);
   return ultima.rolValidador === "IP" ? "Validado por el IP" : estado;
 }
 

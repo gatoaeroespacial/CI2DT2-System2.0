@@ -105,8 +105,6 @@ public sealed class BorradorProyectosService(
     {
         var borrador = await db.BorradoresProyecto
             .Include(b => b.Programa)
-            .Include(b => b.Secciones.Where(s => s.Activo))
-            .Include(b => b.Mensajes.OrderBy(m => m.FechaUtc))
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id && b.Activo, ct);
 
@@ -115,7 +113,13 @@ public sealed class BorradorProyectosService(
 
         ValidarAccesoBorrador(borrador, usuario);
 
-        var secciones = borrador.Secciones
+        // Secciones y mensajes en consultas separadas: incluirlos juntos multiplica las filas.
+        var seccionesBorrador = await db.BorradorProyectoSecciones.AsNoTracking()
+            .Where(s => s.BorradorProyectoId == id && s.Activo).ToListAsync(ct);
+        var mensajesBorrador = await db.BorradorProyectoMensajes.AsNoTracking()
+            .Where(m => m.BorradorProyectoId == id).ToListAsync(ct);
+
+        var secciones = seccionesBorrador
             .OrderBy(s => s.Orden)
             .Select(s => new BorradorSeccionDetalle(
                 s.Id,
@@ -128,7 +132,7 @@ public sealed class BorradorProyectosService(
                 ContarPalabras(s.Contenido)))
             .ToList();
 
-        var mensajes = borrador.Mensajes
+        var mensajes = mensajesBorrador
             .OrderBy(m => m.FechaUtc)
             .Select(m => new BorradorMensajeDetalle(
                 m.Id,
