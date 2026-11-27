@@ -30,6 +30,7 @@ export function PanelFlujo({ proyecto, flujo, permisos }: { proyecto: ProyectoDe
   const [presupuesto, setPresupuesto] = useState("");
   const [fechaInicio, setFechaInicio] = useState(hoyIso());
   const [justificacion, setJustificacion] = useState("");
+  const [cierre, setCierre] = useState("");
 
   const ejecutar = async (accion: () => Promise<unknown>, exito: string) => {
     setError(undefined);
@@ -39,6 +40,7 @@ export function PanelFlujo({ proyecto, flujo, permisos }: { proyecto: ProyectoDe
       toast.success(exito);
       setObservaciones("");
       setJustificacion("");
+      setCierre("");
       await queryClient.invalidateQueries({ queryKey: ["proyecto", String(proyecto.id)] });
       await queryClient.invalidateQueries({ queryKey: ["proyectos"] });
     } catch (e) {
@@ -51,7 +53,7 @@ export function PanelFlujo({ proyecto, flujo, permisos }: { proyecto: ProyectoDe
   const pendientes = flujo.requisitos.filter((r) => !r.cumple);
   const hayAcciones = flujo.puedeEnviarRevision || flujo.decisionesDisponibles.length > 0
     || flujo.puedeRegistrarAprobacion || flujo.puedeIniciarEjecucion || flujo.etapaRevision !== null
-    || flujo.puedeSuspender || flujo.puedeReanudar;
+    || flujo.puedeSuspender || flujo.puedeReanudar || flujo.puedeFinalizar;
   if (!hayAcciones) return null;
 
   return (
@@ -181,6 +183,28 @@ export function PanelFlujo({ proyecto, flujo, permisos }: { proyecto: ProyectoDe
               )}
             >
               {flujo.puedeSuspender ? "Suspender proyecto" : "Reanudar ejecución"}
+            </Boton>
+          </div>
+        </div>
+      )}
+
+      {flujo.puedeFinalizar && (
+        <div className="flex flex-col gap-2 border-t border-emerald-200 pt-3">
+          <h2 className="text-sm font-semibold text-slate-900">Finalizar el proyecto</h2>
+          <p className="text-xs text-slate-600">
+            Requiere todos los hitos del cronograma completados y ningún avance pendiente de validación. Es un estado final.
+          </p>
+          <Campo id="observaciones-cierre" etiqueta={`Observaciones de cierre (mínimo ${MINIMO_OBSERVACIONES} caracteres)`}>
+            <textarea id="observaciones-cierre" rows={2} className={claseEntrada} value={cierre}
+              onChange={(e) => setCierre(e.target.value)} />
+          </Campo>
+          <div>
+            <Boton
+              disabled={enviando || cierre.trim().length < MINIMO_OBSERVACIONES}
+              onClick={() => window.confirm("¿Finalizar el proyecto? Es un estado final y no admite más cambios.")
+                && ejecutar(() => api(`/proyectos/${proyecto.id}/finalizacion`, json("POST", { observaciones: cierre.trim() })), "Proyecto finalizado")}
+            >
+              Finalizar proyecto
             </Boton>
           </div>
         </div>

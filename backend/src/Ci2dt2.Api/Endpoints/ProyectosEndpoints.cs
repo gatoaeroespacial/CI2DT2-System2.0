@@ -239,6 +239,17 @@ public sealed class ProyectosEndpoints : IEndpointModule
             .Produces(StatusCodes.Status204NoContent)
             .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
 
+        grupo.MapPost("/{id:int}/finalizacion", async (int id, CambioEjecucionRequest request, FlujoProyectoService flujo, HttpContext http, CancellationToken ct) =>
+            {
+                await flujo.FinalizarAsync(id, request, http.User.UsuarioAutenticado(), ct);
+                return Results.NoContent();
+            })
+            .Validar<CambioEjecucionRequest>()
+            .WithSummary("Finaliza un proyecto en ejecución (hitos completados y sin avances pendientes), con observaciones")
+            .RequireAuthorization(Politicas.AvalarAprobarProyectos)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ErrorApi>(StatusCodes.Status422UnprocessableEntity);
+
         // ----- HU-16: postulaciones -----
         grupo.MapGet("/{id:int}/postulaciones", async (int id, PostulacionesService servicio, AccesoRecursos acceso, HttpContext http, CancellationToken ct) =>
                 await acceso.PuedeVerProyectoAsync(http.User.UsuarioAutenticado(), id, ct)

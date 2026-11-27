@@ -49,6 +49,8 @@ export function Documentos({
       setTipo("");
       if (entrada.current) entrada.current.value = "";
       queryClient.invalidateQueries({ queryKey: clave });
+      // Los documentos cuentan en la lista de verificación del envío (cartas de compromiso, MGA).
+      queryClient.invalidateQueries({ queryKey: ["proyecto", String(proyectoId)] });
     },
     onError: (e) => setError(e.message),
   });

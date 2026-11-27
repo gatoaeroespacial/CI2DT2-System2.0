@@ -24,6 +24,7 @@ public static class MaquinaEstadosProyecto
         (ValoresProyecto.Aprobado, ValoresProyecto.EnEjecucion),
         (ValoresProyecto.EnEjecucion, ValoresProyecto.Suspendido),
         (ValoresProyecto.Suspendido, ValoresProyecto.EnEjecucion),
+        (ValoresProyecto.EnEjecucion, ValoresProyecto.Finalizado),
     ];
 
     public const string MensajeNoPermitida = "Transición de estado no permitida.";
@@ -47,6 +48,7 @@ public static class DecisionesRevision
     public const string IniciaEjecucion = "Inicia ejecución";
     public const string Suspende = "Suspende";
     public const string Reanuda = "Reanuda";
+    public const string Finaliza = "Finaliza";
 
     public const string EtapaCoordinador = "Coordinador";
     public const string EtapaDirector = "Director";
@@ -77,7 +79,8 @@ public sealed record FlujoProyecto(
     bool PuedeRegistrarAvances,
     bool PuedeGestionarPostulaciones,
     bool PuedeSuspender = false,
-    bool PuedeReanudar = false);
+    bool PuedeReanudar = false,
+    bool PuedeFinalizar = false);
 
 public sealed class RevisionRequestValidator : AbstractValidator<RevisionRequest>
 {
@@ -371,6 +374,39 @@ public sealed class FlujoProyectoService(IApplicationDbContext db, AccesoRecurso
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Cierre del proyecto: pasa de En ejecución a Finalizado (estado final). Lo registra el Director
+    /// (o el Administrador) con observaciones, cuando todos los hitos del cronograma están completados
+    /// y no quedan avances pendientes de validación.
+    /// </summary>
+    public async Task FinalizarAsync(int proyectoId, CambioEjecucionRequest r, UsuarioAutenticado actor, CancellationToken ct = default)
+    {
+        EsDirectivoAval(actor);
+        var proyecto = await CargarAsync(proyectoId, ct);
+        MaquinaEstadosProyecto.Validar(proyecto.EstadoId, ValoresProyecto.Finalizado);
+
+        var hitosAbiertos = await db.Hitos.CountAsync(h => h.Activo && h.Cronograma!.ProyectoId == proyectoId && h.Cronograma.Activo
+            && h.Estado != "Completado", ct);
+        if (hitosAbiertos > 0)
+            throw new ReglaNegocioException($"Para finalizar el proyecto complete primero los hitos del cronograma ({hitosAbiertos} sin completar).");
+        var avancesPendientes = await db.Avances.CountAsync(a => a.Activo && a.ProyectoId == proyectoId
+            && (a.EstadoValidacion == "Pendiente" || a.EstadoValidacion == "Rechazado"), ct);
+        if (avancesPendientes > 0)
+            throw new ReglaNegocioException($"Para finalizar el proyecto valide o resuelva primero los avances pendientes ({avancesPendientes}).");
+
+        var observaciones = r.Observaciones!.Trim();
+        Registrar(proyecto, actor.Id, DecisionesRevision.EtapaDirector, DecisionesRevision.Finaliza, ValoresProyecto.Finalizado, observaciones);
+        proyecto.EstadoId = ValoresProyecto.Finalizado;
+        // Se notifica al equipo vigente y al Coordinador del programa (una sola vez cada uno).
+        var destinatarios = await EquipoVigenteAsync(proyectoId, ct);
+        if (await notificador.CoordinadorVigenteAsync(proyecto.ProgramaId, ct) is { } coordinador)
+            destinatarios.Add(coordinador);
+        foreach (var u in destinatarios.Distinct())
+            notificador.Notificar(u, "ProyectoFinalizado", $"Proyecto {proyecto.Codigo} finalizado",
+                $"El proyecto \"{proyecto.Titulo}\" fue finalizado. Observaciones: {observaciones}", "Proyecto", proyecto.Id);
+        await db.SaveChangesAsync(ct);
+    }
+
     // ----- Permisos de la ficha -----
 
     public async Task<FlujoProyecto> FlujoAsync(int proyectoId, UsuarioAutenticado actor, CancellationToken ct = default)
@@ -398,7 +434,8 @@ public sealed class FlujoProyectoService(IApplicationDbContext db, AccesoRecurso
             proyecto.EstadoId == ValoresProyecto.EnEjecucion && await PuedeRegistrarAvancesAsync(proyectoId, actor, ct),
             gestor && !proyecto.Estado!.EsFinal,
             esAvalador && proyecto.EstadoId == ValoresProyecto.EnEjecucion,
-            esAvalador && proyecto.EstadoId == ValoresProyecto.Suspendido);
+            esAvalador && proyecto.EstadoId == ValoresProyecto.Suspendido,
+            esAvalador && proyecto.EstadoId == ValoresProyecto.EnEjecucion);
     }
 
     /// <summary>"Registrar avances": Admin y Director; Coordinador de su programa; integrantes vigentes (HU-09 CA-3).</summary>

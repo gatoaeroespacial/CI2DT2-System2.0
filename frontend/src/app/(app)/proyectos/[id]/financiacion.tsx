@@ -54,7 +54,11 @@ export function Financiacion({ proyectoId, puedeEditar }: { proyectoId: string; 
   const queryClient = useQueryClient();
   const [edicion, setEdicion] = useState<Fuente | "nueva" | null>(null);
   const datos = useQuery({ queryKey: ["proyecto-fuentes", proyectoId], queryFn: () => api<Datos>(`/proyectos/${proyectoId}/fuentes`) });
-  const refrescar = () => queryClient.invalidateQueries({ queryKey: ["proyecto-fuentes", proyectoId] });
+  // La lista de verificación del envío a revisión (ficha) depende de las fuentes registradas.
+  const refrescar = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["proyecto-fuentes", proyectoId] }),
+    queryClient.invalidateQueries({ queryKey: ["proyecto", String(proyectoId)] }),
+  ]);
 
   const eliminar = useMutation({
     mutationFn: (f: Fuente) => api(`/proyectos/${proyectoId}/fuentes/${f.id}`, { method: "DELETE" }),
