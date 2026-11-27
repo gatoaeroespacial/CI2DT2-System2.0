@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, apiAuth, renovarSesion } from "@/lib/api";
 import logoCi2dt2 from "@/assets/img/LOGO_CI2DT2.png";
 import { useAuth } from "@/lib/auth-store";
@@ -148,6 +148,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [menuColapsado, setMenuColapsado] = useState(false);
+  const [confirmarCierreSesion, setConfirmarCierreSesion] = useState(false);
+  const botonCerrarSesionRef = useRef<HTMLButtonElement>(null);
+  const botonCancelarCierreRef = useRef<HTMLButtonElement>(null);
+  const botonConfirmarCierreRef = useRef<HTMLButtonElement>(null);
 
   const alternarMenuColapsado = () => {
     setMenuColapsado((actual) => !actual);
@@ -160,6 +164,35 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (!ok) window.location.replace("/login?sesion=expirada");
     });
   }, [usuario]);
+
+  useEffect(() => {
+    if (!confirmarCierreSesion) return;
+
+    const botonCerrarSesion = botonCerrarSesionRef.current;
+    const manejarTecla = (evento: KeyboardEvent) => {
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        setConfirmarCierreSesion(false);
+      } else if (evento.key === "Tab") {
+        const cancelar = botonCancelarCierreRef.current;
+        const confirmar = botonConfirmarCierreRef.current;
+        if (evento.shiftKey && document.activeElement === cancelar) {
+          evento.preventDefault();
+          confirmar?.focus();
+        } else if (!evento.shiftKey && document.activeElement === confirmar) {
+          evento.preventDefault();
+          cancelar?.focus();
+        }
+      }
+    };
+
+    botonCancelarCierreRef.current?.focus();
+    window.addEventListener("keydown", manejarTecla);
+    return () => {
+      window.removeEventListener("keydown", manejarTecla);
+      botonCerrarSesion?.focus();
+    };
+  }, [confirmarCierreSesion]);
 
   if (!usuario) return <Cargando texto="Verificando la sesión…" />;
 
@@ -294,25 +327,77 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-in-out ${menuColapsado ? "md:ml-20" : "md:ml-64"} ${ruta === "/asistente" ? "min-h-0" : ""}`}>
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-3">
-          <p className="text-sm text-slate-500 first-letter:uppercase">{fechaLarga(new Date())}</p>
-          <div className="flex items-center gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/50 bg-surface-container-lowest px-4 py-3 shadow-sm md:px-8">
+          <p className="rounded-lg px-3 py-2 font-body-sm text-body-sm text-on-surface-variant first-letter:uppercase">
+            {fechaLarga(new Date())}
+          </p>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-3 sm:gap-4">
             <Campana ruta={ruta} />
-            <div className="text-right">
-              <p className="text-sm font-medium text-slate-900">
+            <div className="max-w-48 text-right">
+              <p className="truncate font-body-sm text-body-sm font-semibold text-on-surface">
                 {usuario.nombres} {usuario.apellidos}
               </p>
-              <p className="text-xs text-slate-500">{usuario.roles.join(", ")}</p>
+              <p className="truncate text-xs text-on-surface-variant">{usuario.roles.join(", ")}</p>
             </div>
-            <Boton variante="secundario" onClick={cerrarSesion}>
+            <button
+              ref={botonCerrarSesionRef}
+              type="button"
+              onClick={() => setConfirmarCierreSesion(true)}
+              className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:border-error hover:bg-error hover:text-on-error focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
               Cerrar sesión
-            </Boton>
+            </button>
           </div>
         </header>
         <main className={`flex-1 px-4 py-6 md:px-8 ${ruta === "/asistente" ? "flex min-h-0 flex-col overflow-hidden" : ""}`}>
           {autorizado ? children : <EstadoError mensaje="No tiene permisos para ver esta página." />}
         </main>
         <AvisoPoliticaDatos />
+        {confirmarCierreSesion && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-on-surface/40 p-4"
+            onClick={(evento) => {
+              if (evento.target === evento.currentTarget) setConfirmarCierreSesion(false);
+            }}
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="titulo-confirmar-cierre"
+              aria-describedby="descripcion-confirmar-cierre"
+              className="w-full max-w-md rounded-xl bg-surface-container-lowest p-6 shadow-xl shadow-primary/10"
+            >
+              <p className="font-label-sm text-label-sm uppercase text-error">Confirmar salida</p>
+              <h2 id="titulo-confirmar-cierre" className="mt-2 font-headline-sm text-headline-sm font-semibold text-on-surface">
+                ¿Seguro que quieres cerrar sesión?
+              </h2>
+              <p id="descripcion-confirmar-cierre" className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+                Tendrás que iniciar sesión nuevamente para volver a la plataforma.
+              </p>
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  ref={botonCancelarCierreRef}
+                  type="button"
+                  onClick={() => setConfirmarCierreSesion(false)}
+                  className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-outline-variant bg-surface px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-container-low focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  No, continuar
+                </button>
+                <button
+                  ref={botonConfirmarCierreRef}
+                  type="button"
+                  onClick={async () => {
+                    setConfirmarCierreSesion(false);
+                    await cerrarSesion();
+                  }}
+                  className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-error bg-error px-4 py-2 text-sm font-semibold text-on-error shadow-sm transition hover:bg-error/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                >
+                  Sí, cerrar sesión
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -326,13 +411,17 @@ function Campana({ ruta }: { ruta: string }) {
   });
   const n = conteo.data?.noLeidas ?? 0;
   return (
-    <Link href="/notificaciones" aria-label={`Notificaciones: ${n} sin leer`} className="relative rounded-md p-2 text-slate-700 hover:bg-slate-100">
+    <Link
+      href="/notificaciones"
+      aria-label={`Notificaciones: ${n} sin leer`}
+      className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-low text-primary transition hover:bg-primary-fixed/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
       </svg>
       {n > 0 && (
-        <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-xs font-semibold text-white">
+        <span className="absolute -right-1 -top-1 min-w-5 rounded-full border-2 border-surface-container-lowest bg-error px-1 text-center text-xs font-semibold text-on-error">
           {n > 99 ? "99+" : n}
         </span>
       )}
